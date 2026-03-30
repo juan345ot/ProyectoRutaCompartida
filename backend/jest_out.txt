@@ -1,0 +1,31 @@
+  console.log
+    [dotenv@17.3.1] injecting env (3) from .env -- tip: 🛠️  run anywhere with `dotenvx run -- yourcommand`
+
+      at _log (node_modules/dotenv/lib/main.js:139:11)
+
+FAIL tests/post.test.js
+  ● Test suite failed to run
+
+    Cannot find module 'helmet' from 'server.js'
+
+    Require stack:
+      server.js
+      tests/post.test.js
+
+    [0m [90m 3 |[39m [36mconst[39m cors [33m=[39m require([32m'cors'[39m)[33m;[39m
+     [90m 4 |[39m [36mconst[39m morgan [33m=[39m require([32m'morgan'[39m)[33m;[39m
+    [31m[1m>[22m[39m[90m 5 |[39m [36mconst[39m helmet [33m=[39m require([32m'helmet'[39m)[33m;[39m
+     [90m   |[39m                [31m[1m^[22m[39m
+     [90m 6 |[39m [36mconst[39m rateLimit [33m=[39m require([32m'express-rate-limit'[39m)[33m;[39m
+     [90m 7 |[39m [36mconst[39m connectDB [33m=[39m require([32m'./config/db'[39m)[33m;[39m
+     [90m 8 |[39m[0m
+
+      at Resolver._throwModNotFoundError (node_modules/jest-resolve/build/index.js:863:11)
+      at Object.require (server.js:5:16)
+      at Object.require (tests/post.test.js:2:13)
+
+Test Suites: 1 failed, 1 total
+Tests:       0 total
+Snapshots:   0 total
+Time:        1.519 s
+Ran all test suites.

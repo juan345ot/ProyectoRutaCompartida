@@ -1,0 +1,9 @@
+{
+  "appId": "com.rutacompartida.app",
+  "appName": "Ruta Compartida",
+  "webDir": "out",
+  "bundledWebRuntime": false,
+  "server": {
+    "androidScheme": "https"
+  }
+}
