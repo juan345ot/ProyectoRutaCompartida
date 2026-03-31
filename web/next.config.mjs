@@ -9,7 +9,7 @@ const nextConfig = {
       },
     ],
   },
-  output: 'export',
+  // output: 'export', // Desactivado para Vercel y para que el modo dev no tire el error de "missing param in generateStaticParams"
 };
 
 export default nextConfig;
