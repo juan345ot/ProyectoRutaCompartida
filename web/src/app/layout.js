@@ -9,10 +9,6 @@ export const metadata = {
   title: "Ruta Compartida - Viaja y Transporta",
   description: "Conectamos tu viaje. Encuentra lugar para vos o para tus paquetes al mejor precio.",
   manifest: "/manifest.json",
-  icons: {
-    icon: "/icon.svg",
-    apple: "/icon.svg"
-  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
