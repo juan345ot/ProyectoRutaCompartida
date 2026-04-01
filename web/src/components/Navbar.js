@@ -1,7 +1,7 @@
 "use client";
 import Link from 'next/link';
 import { useState, useContext, useEffect, useRef } from 'react';
-import { Menu, X, Route, User, ChevronDown } from 'lucide-react';
+import { Menu, X, Route, User, ChevronDown, Moon, Sun } from 'lucide-react';
 import { AuthContext } from '@/context/AuthContext';
 import { useTheme } from '@/context/ThemeContext';
 import { usePathname } from 'next/navigation';
@@ -63,6 +63,15 @@ export default function Navbar() {
             <Link href="/search" className="bg-white text-brand-600 hover:bg-brand-50 font-semibold px-4 py-2 rounded-full shadow-sm hover:shadow-md transition-all text-sm">
               Publicaciones
             </Link>
+
+            <button
+              onClick={toggleTheme}
+              className="p-2 ml-1 mr-1 rounded-full hover:bg-white/10 text-brand-100 transition-colors"
+              aria-label="Alternar tema"
+            >
+              {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+            </button>
+            <div className="w-px h-6 bg-white/20 mx-1"></div>
             
             {isAuthenticated ? (
                 <div className="relative flex items-center gap-4" ref={dropdownRef}>
@@ -97,6 +106,14 @@ export default function Navbar() {
 
           {/* Mobile menu button */}
           <div className="flex items-center md:hidden gap-4">
+            <button
+              onClick={toggleTheme}
+              className="p-1 text-brand-100 hover:text-white transition-colors"
+              aria-label="Alternar tema"
+            >
+              {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+            </button>
+            
             {isAuthenticated && !isMenuOpen && (
                <div className="h-8 w-8 rounded-full bg-brand-800 flex items-center justify-center text-white font-bold border border-brand-500">
                   {user.name?.charAt(0).toUpperCase()}
