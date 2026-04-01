@@ -16,6 +16,14 @@ export default function Navbar() {
   const dropdownRef = useRef(null);
   const pathname = usePathname();
 
+  // Reset menu states on navigation without an Effect to avoid cascading render lint errors
+  const [lastPathname, setLastPathname] = useState(pathname);
+  if (pathname !== lastPathname) {
+    setLastPathname(pathname);
+    setIsMenuOpen(false);
+    setIsProfileOpen(false);
+  }
+
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -26,13 +34,6 @@ export default function Navbar() {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
-
-  // Close menus when navigating to a new route.
-  useEffect(() => {
-    /* eslint-disable-next-line react-compiler */
-    setIsMenuOpen(false);
-    setIsProfileOpen(false);
-  }, [pathname]);
 
 
   return (

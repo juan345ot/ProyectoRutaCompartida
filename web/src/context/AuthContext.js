@@ -86,6 +86,21 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const loginWithGoogle = async (googleData) => {
+    try {
+      const res = await api.post('/auth/google', googleData);
+      const { user: userData, token } = res.data;
+      setUser(normalizeUser(userData, token));
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('token', token);
+      }
+      return true;
+    } catch (error) {
+      console.error("Google Login Error", error);
+      throw error.response?.data?.message || 'Error con Google Login';
+    }
+  };
+
   const refreshUser = async () => {
     const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
     if (!token) return;
@@ -99,7 +114,7 @@ export const AuthProvider = ({ children }) => {
 
   return (
     <AuthContext.Provider
-      value={{ user, loading, login, register, logout, refreshUser, isAuthenticated: !!user }}
+      value={{ user, loading, login, register, loginWithGoogle, logout, refreshUser, isAuthenticated: !!user }}
     >
       {children}
     </AuthContext.Provider>

@@ -36,14 +36,21 @@ export default function AdminDashboard() {
         }
     };
 
+    // Effect for redirection/auth check
     useEffect(() => {
         if (!loading && (!isAuthenticated || user?.email !== 'juanignacio295@gmail.com')) {
             toast.error('Acceso denegado: Se requieren permisos galácticos.');
             router.push('/');
-        } else if (isAuthenticated) {
-            fetchStats();
         }
     }, [isAuthenticated, user, loading, router]);
+
+    // Effect for fetching stats
+    useEffect(() => {
+        if (isAuthenticated && user?.email === 'juanignacio295@gmail.com') {
+            // Use Promise to avoid synchronous setState cascading render warning
+            Promise.resolve().then(() => fetchStats());
+        }
+    }, [isAuthenticated, user]);
 
     if (loading || isLoading) return <div className="p-20 text-center font-bold animate-pulse">Cargando Centro de Control...</div>;
 

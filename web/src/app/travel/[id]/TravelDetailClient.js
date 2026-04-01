@@ -1,5 +1,5 @@
 "use client";
-import { useContext, useEffect, useState, useCallback } from "react";
+import { useContext, useEffect, useState, useCallback, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { AuthContext } from "@/context/AuthContext";
 import api from "@/lib/api";
@@ -14,6 +14,7 @@ import {
   Users,
   CheckCircle,
   Car,
+  Navigation,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import Image from "next/image";
@@ -24,6 +25,7 @@ export default function TravelDetailClient() {
   const { user, isAuthenticated } = useContext(AuthContext);
   const [post, setPost] = useState(null);
   const [loading, setLoading] = useState(true);
+  const mapRef = useRef(null);
 
   const uid = user?._id || user?.id;
 
@@ -43,6 +45,33 @@ export default function TravelDetailClient() {
   useEffect(() => {
     loadPost();
   }, [loadPost]);
+
+  useEffect(() => {
+    if (post && mapRef.current && window.google) {
+      const directionsService = new google.maps.DirectionsService();
+      const directionsRenderer = new google.maps.DirectionsRenderer();
+      
+      const map = new google.maps.Map(mapRef.current, {
+        zoom: 7,
+        center: { lat: -34.6037, lng: -58.3816 }, // Default center (Buenos Aires)
+      });
+      directionsRenderer.setMap(map);
+
+      const request = {
+        origin: post.origin,
+        destination: post.destination,
+        travelMode: google.maps.TravelMode.DRIVING,
+      };
+
+      directionsService.route(request, (result, status) => {
+        if (status === google.maps.DirectionsStatus.OK) {
+          directionsRenderer.setDirections(result);
+        } else {
+          console.error("error fetching directions", status);
+        }
+      });
+    }
+  }, [post]);
 
   const authorId = post?.author?._id || post?.author;
   const isOwner = uid && authorId && String(authorId) === String(uid);
@@ -212,8 +241,19 @@ export default function TravelDetailClient() {
             </p>
           </div>
         </div>
-
-        <p className="mt-4 text-sm theme-text opacity-80">
+        
+        {/* Mapa de la ruta */}
+        <div className="mt-8">
+          <p className="font-semibold mb-3 flex items-center gap-3 theme-text opacity-90">
+             <Navigation className="h-4 w-4" /> Ruta sugerida
+          </p>
+          <div 
+            ref={mapRef} 
+            className="w-full h-72 md:h-[400px] rounded-3xl overflow-hidden border border-current/10 shadow-lg bg-white/5"
+          />
+        </div>
+        
+        <p className="mt-6 text-sm theme-text opacity-80">
           <strong>Capacidad:</strong> {post.capacity}
         </p>
 

@@ -1,5 +1,5 @@
 "use client";
-import { useState, useContext, useEffect } from 'react';
+import { useState, useContext, useEffect, useCallback } from 'react';
 import { AuthContext } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -19,8 +19,55 @@ export default function RegisterPage() {
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   
-  const { register, isAuthenticated } = useContext(AuthContext);
+  const { register, loginWithGoogle, isAuthenticated } = useContext(AuthContext);
   const router = useRouter();
+
+  const handleGoogleResponse = useCallback(async (response) => {
+    setIsLoading(true);
+    try {
+      const base64Url = response.credential.split('.')[1];
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+          return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+      }).join(''));
+      
+      const payload = JSON.parse(jsonPayload);
+      
+      await loginWithGoogle({
+        email: payload.email,
+        name: payload.name,
+        googleId: payload.sub,
+        profileImage: payload.picture
+      });
+      
+      toast.success('¡Sesión iniciada con Google!');
+    } catch (err) {
+      console.error(err);
+      toast.error('Error al registrarse con Google');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [loginWithGoogle]);
+
+  useEffect(() => {
+    /* global google */
+    if (typeof window !== 'undefined' && window.google) {
+      const initializeGoogle = () => {
+        google.accounts.id.initialize({
+          client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID,
+          callback: handleGoogleResponse,
+        });
+        google.accounts.id.renderButton(
+          document.getElementById("googleBtn"),
+          { theme: "outline", size: "large", width: "100%", text: "signup_with", shape: "pill" }
+        );
+      };
+      
+      if (process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID) {
+        initializeGoogle();
+      }
+    }
+  }, [handleGoogleResponse]);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -175,6 +222,21 @@ export default function RegisterPage() {
               >
                 {isLoading ? 'Creando cuenta...' : 'Crear Cuenta'}
               </Button>
+            </div>
+
+            <div className="mt-6">
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-white/20" />
+                  </div>
+                  <div className="relative flex justify-center text-sm">
+                    <span className="px-2 bg-transparent opacity-60">O registrarse con</span>
+                  </div>
+                </div>
+
+                <div className="mt-6">
+                  <div id="googleBtn" className="w-full h-[40px] flex justify-center"></div>
+                </div>
             </div>
             
           </form>
