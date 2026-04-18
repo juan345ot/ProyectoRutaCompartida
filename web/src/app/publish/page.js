@@ -1,5 +1,5 @@
 "use client";
-import { useState, useContext, useEffect, useRef } from "react";
+import { useState, useContext, useEffect, useRef, Suspense } from "react";
 import { MapPin, Calendar, Package, Users, Info, Car, Shield } from "lucide-react";
 import Link from "next/link";
 import { AuthContext } from "@/context/AuthContext";
@@ -16,7 +16,7 @@ function userHasProfilePhoto(u) {
   return !PLACEHOLDER_HINTS.some((h) => s.includes(h));
 }
 
-export default function PublishPage() {
+function PublishContent() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editId, setEditId] = useState(null);
@@ -647,5 +647,18 @@ export default function PublishPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function PublishPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-[60vh] flex flex-col items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-500 mb-4" />
+        <p className="text-gray-500">Cargando...</p>
+      </div>
+    }>
+      <PublishContent />
+    </Suspense>
   );
 }
