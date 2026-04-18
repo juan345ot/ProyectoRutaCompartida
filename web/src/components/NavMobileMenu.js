@@ -17,13 +17,6 @@ export default function NavMobileMenu({
       <div className="px-4 py-3 bg-brand-700 border-b border-brand-600 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <span className="font-semibold text-white">Menú</span>
-          <button 
-            onClick={toggleTheme}
-            className="p-1.5 rounded-full bg-brand-800 text-white border border-brand-500 shadow-sm"
-            title={theme === 'light' ? 'Modo Claro' : 'Modo Oscuro'}
-          >
-            {theme === 'light' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-          </button>
         </div>
         {isAuthenticated && (
           <button onClick={logout} className="text-sm font-medium text-red-300 hover:text-red-200 flex items-center gap-1">
