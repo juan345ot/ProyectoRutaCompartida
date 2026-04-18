@@ -7,10 +7,14 @@ const rateLimit = require('express-rate-limit');
 const compression = require('compression');
 const connectDB = require('./config/db');
 const logger = require('./middleware/logger');
+const { startCronJobs } = require('./utils/cronJobs');
 
 // Connect to database
 if (process.env.NODE_ENV !== 'test') {
-  connectDB();
+  connectDB().then(() => {
+    // Iniciar tareas automatizadas una vez conectada la BD
+    startCronJobs();
+  });
 }
 
 const app = express();
@@ -46,8 +50,8 @@ app.use(cors({
 // Limitadores de peticiones
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutos
-  max: 150, // Límite por IP
-  message: { message: 'Demasiadas peticiones desde esta IP, por favor intenta en 15 minutos.' }
+  max: 3000, // Límite por IP aumentado para desarrollo
+  message: { message: 'Demasiadas peticiones desde esta IP, por favor intenta en un momento.' }
 });
 
 app.use('/api/', apiLimiter);
@@ -66,6 +70,8 @@ app.use('/api/users', require('./routes/userRoutes'));
 app.use('/api/posts', require('./routes/postRoutes'));
 app.use('/api/reviews', require('./routes/reviewRoutes'));
 app.use('/api/reports', require('./routes/reportRoutes'));
+app.use('/api/bookings', require('./routes/bookingRoutes'));
+app.use('/api/notifications', require('./routes/notificationRoutes'));
 
 // Global Error Handling Middleware
 app.use((err, req, res, next) => {

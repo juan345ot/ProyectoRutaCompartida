@@ -1,9 +1,9 @@
 "use client";
-import { useState, useContext, useEffect } from "react";
+import { useState, useContext, useEffect, useRef } from "react";
 import { MapPin, Calendar, Package, Users, Info, Car, Shield } from "lucide-react";
 import Link from "next/link";
 import { AuthContext } from "@/context/AuthContext";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import api from "@/lib/api";
 import toast from "react-hot-toast";
 import Image from "next/image";
@@ -18,6 +18,11 @@ function userHasProfilePhoto(u) {
 
 export default function PublishPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editId, setEditId] = useState(null);
+  const originRef = useRef(null);
+  const destinationRef = useRef(null);
+
   const [formData, setFormData] = useState({
     type: "offer",
     category: "passenger",
@@ -26,11 +31,19 @@ export default function PublishPage() {
     date: "",
     time: "",
     arrivalApprox: "",
-    capacity: "",
+    seats: 1,
+    weight: "",
+    dimensions: { length: "", width: "", height: "" },
     description: "",
+    smoke: false,
+    pets: false,
   });
   const [vehiclePhotoPreview, setVehiclePhotoPreview] = useState(null);
   const [vehicleFields, setVehicleFields] = useState({
+    brand: "",
+    model: "",
+    year: "",
+    color: "",
     licensePlate: "",
     vtvExpiry: "",
     insuranceVerified: false,
@@ -39,12 +52,88 @@ export default function PublishPage() {
 
   const { isAuthenticated, loading, user } = useContext(AuthContext);
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   useEffect(() => {
     if (!loading && !isAuthenticated) {
       router.push("/login?redirect=publish");
     }
   }, [isAuthenticated, loading, router]);
+
+  useEffect(() => {
+    const edit = searchParams.get("edit");
+    if (edit) {
+      setIsEditing(true);
+      setEditId(edit);
+      fetchEditData(edit);
+    }
+  }, [searchParams]);
+
+  const fetchEditData = async (id) => {
+     try {
+        const { data } = await api.get(`/posts/${id}`);
+        // Basic fields
+        const dateObj = new Date(data.departureDate);
+        const yyyy = dateObj.getFullYear();
+        const mm = String(dateObj.getMonth() + 1).padStart(2, '0');
+        const dd = String(dateObj.getDate()).padStart(2, '0');
+        const hh = String(dateObj.getHours()).padStart(2, '0');
+        const min = String(dateObj.getMinutes()).padStart(2, '0');
+
+        setFormData({
+          type: data.type,
+          category: data.category,
+          origin: data.origin,
+          destination: data.destination,
+          date: `${yyyy}-${mm}-${dd}`,
+          time: `${hh}:${min}`,
+          arrivalApprox: data.arrivalApprox || "",
+          seats: data.seats || 1,
+          weight: data.weight || "",
+          dimensions: data.dimensions || { length: "", width: "", height: "" },
+          description: data.description || "",
+          smoke: data.preferences?.smoke || false,
+          pets: data.preferences?.pets || false,
+        });
+
+        if (data.vehicle) {
+           setVehicleFields({
+             brand: data.vehicle.brand || "",
+             model: data.vehicle.model || "",
+             year: data.vehicle.year || "",
+             color: data.vehicle.color || "",
+             licensePlate: data.vehicle.licensePlate || "",
+             vtvExpiry: data.vehicle.vtvExpiry ? data.vehicle.vtvExpiry.split('T')[0] : "",
+             insuranceVerified: data.vehicle.insuranceVerified || false,
+             extraNotes: data.vehicle.extraNotes || "",
+           });
+           setVehiclePhotoPreview(data.vehicle.photoDataUrl || null);
+        }
+     } catch (err) {
+        toast.error("Error al cargar datos para editar");
+     }
+  };
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && window.google && originRef.current && destinationRef.current) {
+      const options = { componentRestrictions: { country: "ar" }, fields: ["formatted_address", "name"] };
+      const autocompleteOrigin = new window.google.maps.places.Autocomplete(originRef.current, options);
+      const autocompleteDest = new window.google.maps.places.Autocomplete(destinationRef.current, options);
+
+      autocompleteOrigin.addListener("place_changed", () => {
+        const place = autocompleteOrigin.getPlace();
+        if (place.formatted_address || place.name) {
+          setFormData(prev => ({ ...prev, origin: place.formatted_address || place.name }));
+        }
+      });
+      autocompleteDest.addListener("place_changed", () => {
+        const place = autocompleteDest.getPlace();
+        if (place.formatted_address || place.name) {
+          setFormData(prev => ({ ...prev, destination: place.formatted_address || place.name }));
+        }
+      });
+    }
+  }, []);
 
   const handleVehiclePhoto = (e) => {
     const file = e.target.files?.[0];
@@ -86,9 +175,6 @@ export default function PublishPage() {
         if (!vehicleFields.licensePlate.trim()) {
           throw new Error("Completá la patente");
         }
-        if (!vehicleFields.vtvExpiry) {
-          throw new Error("Indicá la fecha de VTV o revisación");
-        }
       }
 
       const departureDate = dateObj.toISOString();
@@ -99,22 +185,48 @@ export default function PublishPage() {
         destination: formData.destination,
         departureDate,
         arrivalApprox: formData.arrivalApprox || undefined,
-        capacity: formData.capacity,
         description: formData.description,
+      };
+
+      if (formData.category === "passenger") {
+        if (!formData.seats || formData.seats < 1) throw new Error("Indicá al menos 1 lugar/asiento");
+        payload.seats = Number(formData.seats);
+      } else {
+        if (!formData.weight || formData.weight < 1) throw new Error("Indicá el peso máximo o estimado del paquete");
+        payload.weight = Number(formData.weight);
+        payload.dimensions = {
+          length: Number(formData.dimensions.length) || 0,
+          width: Number(formData.dimensions.width) || 0,
+          height: Number(formData.dimensions.height) || 0,
+        };
+      }
+
+      payload.preferences = {
+        smoke: formData.smoke,
+        pets: formData.pets,
+        ac: true // Fixed for now as per user instruction on clima badge visibility
       };
 
       if (formData.type === "offer") {
         payload.vehicle = {
           photoDataUrl: vehiclePhotoPreview,
+          brand: vehicleFields.brand.trim(),
+          model: vehicleFields.model.trim(),
+          year: vehicleFields.year.trim(),
+          color: vehicleFields.color.trim(),
           licensePlate: vehicleFields.licensePlate.trim(),
-          vtvExpiry: new Date(vehicleFields.vtvExpiry).toISOString(),
-          insuranceVerified: vehicleFields.insuranceVerified,
           extraNotes: vehicleFields.extraNotes || undefined,
         };
       }
 
-      await api.post("/posts", payload);
-      toast.success("¡Publicación creada exitosamente!");
+      if (isEditing) {
+        await api.patch(`/posts/${editId}`, payload);
+        toast.success("¡Publicación actualizada exitosamente!");
+      } else {
+        await api.post("/posts", payload);
+        toast.success("¡Publicación creada exitosamente!");
+      }
+
       router.push("/search");
     } catch (err) {
       const errorMsg =
@@ -141,7 +253,9 @@ export default function PublishPage() {
     <div className="min-h-screen bg-transparent py-12">
       <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold font-outfit theme-text mb-4">Crea una Publicación</h1>
+          <h1 className="text-3xl font-bold font-outfit theme-text mb-4">
+             {isEditing ? "Editar Publicación" : "Crea una Publicación"}
+          </h1>
           <p className="theme-text opacity-80">
             Ofrecer lugar requiere más datos (vehículo, VTV, foto de perfil). Buscar lugar sigue siendo
             simple.
@@ -242,6 +356,54 @@ export default function PublishPage() {
                     </div>
                   )}
                 </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium theme-text mb-1">Marca del vehículo</label>
+                    <input
+                      type="text"
+                      required={formData.type === "offer"}
+                      value={vehicleFields.brand}
+                      onChange={(e) => setVehicleFields({ ...vehicleFields, brand: e.target.value })}
+                      className="w-full rounded-xl border border-gray-300 dark:border-gray-600 py-3 px-4 theme-text bg-white dark:bg-gray-900"
+                      placeholder="Ej: Ford, Toyota, Fiat..."
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium theme-text mb-1">Modelo</label>
+                    <input
+                      type="text"
+                      required={formData.type === "offer"}
+                      value={vehicleFields.model}
+                      onChange={(e) => setVehicleFields({ ...vehicleFields, model: e.target.value })}
+                      className="w-full rounded-xl border border-gray-300 dark:border-gray-600 py-3 px-4 theme-text bg-white dark:bg-gray-900"
+                      placeholder="Ej: Fiesta, Corolla..."
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium theme-text mb-1">Año</label>
+                    <input
+                      type="number"
+                      required={formData.type === "offer"}
+                      value={vehicleFields.year}
+                      onChange={(e) => setVehicleFields({ ...vehicleFields, year: e.target.value })}
+                      className="w-full rounded-xl border border-gray-300 dark:border-gray-600 py-3 px-4 theme-text bg-white dark:bg-gray-900"
+                      placeholder="Ej: 2018"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium theme-text mb-1">Color</label>
+                    <input
+                      type="text"
+                      required={formData.type === "offer"}
+                      value={vehicleFields.color}
+                      onChange={(e) => setVehicleFields({ ...vehicleFields, color: e.target.value })}
+                      className="w-full rounded-xl border border-gray-300 dark:border-gray-600 py-3 px-4 theme-text bg-white dark:bg-gray-900"
+                      placeholder="Ej: Rojo, Blanco..."
+                    />
+                  </div>
+                </div>
                 <div>
                   <label className="block text-sm font-medium theme-text mb-1">Patente</label>
                   <input
@@ -253,28 +415,6 @@ export default function PublishPage() {
                     placeholder="AA 123 BB"
                   />
                 </div>
-                <div>
-                  <label className="block text-sm font-medium theme-text mb-1">
-                    Vencimiento VTV / revisación técnica
-                  </label>
-                  <input
-                    type="date"
-                    required={formData.type === "offer"}
-                    value={vehicleFields.vtvExpiry}
-                    onChange={(e) => setVehicleFields({ ...vehicleFields, vtvExpiry: e.target.value })}
-                    className="w-full rounded-xl border border-gray-300 dark:border-gray-600 py-3 px-4 theme-text bg-white dark:bg-gray-900"
-                  />
-                </div>
-                <label className="flex items-center gap-2 theme-text cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={vehicleFields.insuranceVerified}
-                    onChange={(e) =>
-                      setVehicleFields({ ...vehicleFields, insuranceVerified: e.target.checked })
-                    }
-                  />
-                  Declaro que el seguro del vehículo se encuentra vigente
-                </label>
                 <div>
                   <label className="block text-sm font-medium theme-text mb-1">Notas del vehículo (opcional)</label>
                   <input
@@ -296,6 +436,7 @@ export default function PublishPage() {
                   <div className="relative">
                     <MapPin className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
                     <input
+                      ref={originRef}
                       type="text"
                       required
                       placeholder="Ciudad de salida"
@@ -310,6 +451,7 @@ export default function PublishPage() {
                   <div className="relative">
                     <MapPin className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
                     <input
+                      ref={destinationRef}
                       type="text"
                       required
                       placeholder="Ciudad de llegada"
@@ -332,6 +474,7 @@ export default function PublishPage() {
                     <input
                       type="date"
                       required
+                      min={new Date().toLocaleDateString('en-CA')}
                       value={formData.date}
                       onChange={(e) => setFormData({ ...formData, date: e.target.value })}
                       className="pl-10 w-full rounded-xl border border-gray-300 dark:border-gray-600 py-3 theme-text bg-white dark:bg-gray-900"
@@ -349,33 +492,97 @@ export default function PublishPage() {
                   />
                 </div>
               </div>
-              <div>
-                <label className="block text-sm font-medium theme-text mb-1">
-                  Llegada aproximada (texto u hora)
-                </label>
-                <input
-                  type="text"
-                  value={formData.arrivalApprox}
-                  onChange={(e) => setFormData({ ...formData, arrivalApprox: e.target.value })}
-                  className="w-full rounded-xl border border-gray-300 dark:border-gray-600 py-3 px-4 theme-text bg-white dark:bg-gray-900"
-                  placeholder="ej. 18:30 o según tráfico"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium theme-text mb-1">Capacidad / Espacio</label>
-                <input
-                  type="text"
-                  required
-                  placeholder={
-                    formData.category === "passenger"
-                      ? "Ej: 2 asientos"
-                      : "Ej: hasta 10 kg"
-                  }
-                  value={formData.capacity}
-                  onChange={(e) => setFormData({ ...formData, capacity: e.target.value })}
-                  className="w-full rounded-xl border border-gray-300 dark:border-gray-600 py-3 px-4 theme-text bg-white dark:bg-gray-900"
-                />
-              </div>
+              {formData.type === "offer" && (
+                <div>
+                  <label className="block text-sm font-medium theme-text mb-1">
+                    Llegada aproximada (opcional)
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.arrivalApprox}
+                    onChange={(e) => setFormData({ ...formData, arrivalApprox: e.target.value })}
+                    className="w-full rounded-xl border border-gray-300 dark:border-gray-600 py-3 px-4 theme-text bg-white dark:bg-gray-900"
+                    placeholder="ej. 18:30 o según tráfico"
+                  />
+                </div>
+              )}
+
+              {formData.category === "passenger" ? (
+                <div>
+                  <label className="block text-sm font-medium theme-text mb-1">Asientos / Lugares {formData.type === "offer" ? "disponibles" : "requeridos"}</label>
+                  <div className="flex items-center gap-4">
+                    <input
+                      type="number"
+                      min="1"
+                      max="10"
+                      required
+                      value={formData.seats}
+                      onChange={(e) => setFormData({ ...formData, seats: e.target.value })}
+                      className="w-24 rounded-xl border border-gray-300 dark:border-gray-600 py-3 px-4 theme-text bg-white dark:bg-gray-900"
+                    />
+                    <span className="theme-text opacity-70">personas</span>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium theme-text mb-1">Peso máximo / estimado (kg) {formData.type === "offer" ? "disponible" : "necesario"}</label>
+                    <input
+                      type="number"
+                      min="1"
+                      required
+                      value={formData.weight}
+                      onChange={(e) => setFormData({ ...formData, weight: e.target.value })}
+                      className="w-full rounded-xl border border-gray-300 dark:border-gray-600 py-3 px-4 theme-text bg-white dark:bg-gray-900"
+                      placeholder="Ej: 5"
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-medium theme-text mb-2 text-xs uppercase tracking-wider opacity-60">Dimensiones máximas aproximadas (cm)</label>
+                    <div className="grid grid-cols-3 gap-3">
+                      <div>
+                        <label className="block text-[10px] theme-text uppercase mb-1">Largo</label>
+                        <input
+                          type="number"
+                          placeholder="cm"
+                          value={formData.dimensions.length}
+                          onChange={(e) => setFormData({
+                            ...formData,
+                            dimensions: { ...formData.dimensions, length: e.target.value }
+                          })}
+                          className="w-full rounded-xl border border-gray-300 dark:border-gray-600 py-2 px-3 theme-text bg-white dark:bg-gray-900 text-sm"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] theme-text uppercase mb-1">Ancho</label>
+                        <input
+                          type="number"
+                          placeholder="cm"
+                          value={formData.dimensions.width}
+                          onChange={(e) => setFormData({
+                            ...formData,
+                            dimensions: { ...formData.dimensions, width: e.target.value }
+                          })}
+                          className="w-full rounded-xl border border-gray-300 dark:border-gray-600 py-2 px-3 theme-text bg-white dark:bg-gray-900 text-sm"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] theme-text uppercase mb-1">Alto</label>
+                        <input
+                          type="number"
+                          placeholder="cm"
+                          value={formData.dimensions.height}
+                          onChange={(e) => setFormData({
+                            ...formData,
+                            dimensions: { ...formData.dimensions, height: e.target.value }
+                          })}
+                          className="w-full rounded-xl border border-gray-300 dark:border-gray-600 py-2 px-3 theme-text bg-white dark:bg-gray-900 text-sm"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
               <div>
                 <label className="block text-sm font-medium theme-text mb-1">Notas adicionales</label>
                 <textarea
@@ -385,14 +592,45 @@ export default function PublishPage() {
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   className="w-full rounded-xl border border-gray-300 dark:border-gray-600 py-3 px-4 theme-text bg-white dark:bg-gray-900 resize-none"
                 />
-                <p className="text-xs theme-text opacity-70 mt-1 flex items-center gap-1">
-                  <Info className="h-3 w-3" /> Máximo 500 caracteres.
-                </p>
+              </div>
+
+              <div className="space-y-3 pt-2">
+                 <p className="text-sm font-bold theme-text uppercase tracking-widest opacity-60">Reglas y Preferencias</p>
+                 <div className="flex flex-wrap gap-6">
+                    <label className="flex items-center gap-3 cursor-pointer group">
+                       <div className={`h-6 w-6 rounded-md border-2 flex items-center justify-center transition-all ${formData.smoke ? 'bg-brand-500 border-brand-500' : 'border-gray-300 dark:border-gray-600'}`}>
+                          <input 
+                             type="checkbox" 
+                             className="hidden" 
+                             checked={formData.smoke}
+                             onChange={(e) => setFormData({ ...formData, smoke: e.target.checked })}
+                          />
+                          {formData.smoke && <div className="h-2 w-2 bg-white rounded-full" />}
+                       </div>
+                       <span className="theme-text font-bold text-sm">Permite Fumar</span>
+                    </label>
+
+                    <label className="flex items-center gap-3 cursor-pointer group">
+                       <div className={`h-6 w-6 rounded-md border-2 flex items-center justify-center transition-all ${formData.pets ? 'bg-brand-500 border-brand-500' : 'border-gray-300 dark:border-gray-600'}`}>
+                          <input 
+                             type="checkbox" 
+                             className="hidden" 
+                             checked={formData.pets}
+                             onChange={(e) => setFormData({ ...formData, pets: e.target.checked })}
+                          />
+                          {formData.pets && <div className="h-2 w-2 bg-white rounded-full" />}
+                       </div>
+                       <span className="theme-text font-bold text-sm">Acepta Mascotas</span>
+                    </label>
+                 </div>
               </div>
             </div>
 
-            <div className="pt-6 border-t border-gray-100 dark:border-gray-700 flex items-center justify-between">
-              <Link href="/" className="outline-button px-6 py-2.5">
+            <div className="pt-6 border-t theme-border flex items-center justify-between gap-4">
+              <Link 
+                href="/search" 
+                className="flex-1 text-center py-4 rounded-2xl font-black uppercase text-xs tracking-[0.2em] bg-gray-400 hover:bg-gray-500 text-white shadow-xl transition-all hover:scale-[1.02] active:scale-95"
+              >
                 Cancelar
               </Link>
               <button
@@ -402,7 +640,7 @@ export default function PublishPage() {
                   isSubmitting ? "opacity-70 cursor-not-allowed" : ""
                 }`}
               >
-                {isSubmitting ? "Publicando..." : "Publicar Ahora"}
+                {isSubmitting ? (isEditing ? "Guardando..." : "Publicando...") : (isEditing ? "Guardar Cambios" : "Publicar Ahora")}
               </button>
             </div>
           </form>

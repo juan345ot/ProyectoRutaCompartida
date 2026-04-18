@@ -1,6 +1,6 @@
 "use client";
 import Link from 'next/link';
-import { Settings, List, Map, Star, LogOut } from 'lucide-react';
+import { Settings, List, Map, Star, LogOut, MessageSquare } from 'lucide-react';
 
 export default function NavProfileDropdown({ user, logout, isOpen }) {
   if (!isOpen) return null;
@@ -18,13 +18,16 @@ export default function NavProfileDropdown({ user, logout, isOpen }) {
         <Link href="/my-posts" className="flex items-center gap-3 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-brand-600 rounded-xl transition-colors">
           <List className="h-4 w-4" /> Mis Publicaciones
         </Link>
+        <Link href="/my-bookings" className="flex items-center gap-3 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-brand-600 rounded-xl transition-colors">
+          <MessageSquare className="h-4 w-4" /> Mis Solicitudes
+        </Link>
         <Link href="/history" className="flex items-center gap-3 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-brand-600 rounded-xl transition-colors">
           <Map className="h-4 w-4" /> Rutas Compartidas
         </Link>
         <Link href="/reviews" className="flex items-center gap-3 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-brand-600 rounded-xl transition-colors">
           <Star className="h-4 w-4" /> Mis Opiniones
         </Link>
-        {user.email === 'juanignacio295@gmail.com' && (
+        {(user.role === 'admin' || user.email === 'juanignacio295@gmail.com') && (
           <Link href="/admin" className="flex items-center gap-3 px-3 py-2 text-sm text-brand-600 bg-brand-50 hover:bg-brand-100 rounded-xl transition-colors font-bold mt-1">
             <Settings className="h-4 w-4" /> Panel de Control
           </Link>

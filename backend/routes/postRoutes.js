@@ -10,6 +10,7 @@ const {
   expressInterest,
   respondToInterest,
   markPostComplete,
+  updatePost,
 } = require('../controllers/postController');
 const { protect } = require('../middleware/authMiddleware');
 const { optionalAuth } = require('../middleware/optionalAuth');
@@ -35,7 +36,7 @@ const validatePost = [
 ];
 
 router.route('/').get(getPosts).post(protect, validatePost, createPost);
-router.route('/:id').get(optionalAuth, getPost).delete(protect, deletePost);
+router.route('/:id').get(optionalAuth, getPost).patch(protect, validatePost, updatePost).delete(protect, deletePost);
 router.post('/:id/interest', protect, expressInterest);
 router.patch('/:id/interest/:userId', protect, respondToInterest);
 router.patch('/:id/complete', protect, markPostComplete);

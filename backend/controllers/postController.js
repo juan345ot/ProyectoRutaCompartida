@@ -60,9 +60,16 @@ const getPosts = async (req, res) => {
     if (category) query.category = category;
     if (type) query.type = type;
 
+    // Ocultar viajes antiguos: solo devolver los que parten en el futuro (dando 30 mins de gracia por retrasos lógicos)
+    const timeLimit = new Date(Date.now() - 30 * 60 * 1000);
+    query.departureDate = { $gte: timeLimit };
+
     if (date) {
-      const d = new Date(date);
-      query.departureDate = { $gte: d };
+      const requestedDate = new Date(date);
+      // Solo restringir a la fecha solicitada si es mayor que nuestro límite de tiempo actual
+      if (requestedDate > timeLimit) {
+        query.departureDate = { $gte: requestedDate };
+      }
     }
 
     const posts = await Post.find(query)
@@ -117,6 +124,9 @@ const createPost = async (req, res) => {
       departureDate,
       arrivalApprox,
       capacity,
+      seats,
+      weight,
+      dimensions,
       description,
       vehicle,
     } = req.body;
@@ -125,6 +135,12 @@ const createPost = async (req, res) => {
 
     if (departureDate) {
       const date = new Date(departureDate);
+      
+      // Validar que la fecha no sea en el pasado (con un pequeño margen de 10 minutos por demoras de submit)
+      if (date.getTime() < Date.now() - 10 * 60 * 1000) {
+        return res.status(400).json({ message: 'La fecha y hora del viaje no puede ser en el pasado.' });
+      }
+
       const startOfDay = new Date(date);
       startOfDay.setHours(0, 0, 0, 0);
       const endOfDay = new Date(date);
@@ -162,9 +178,6 @@ const createPost = async (req, res) => {
       if (!vehicle.licensePlate || !String(vehicle.licensePlate).trim()) {
         return res.status(400).json({ message: 'Indicá la patente del vehículo.' });
       }
-      if (!vehicle.vtvExpiry) {
-        return res.status(400).json({ message: 'Indicá la vigencia de VTV o revisación técnica.' });
-      }
     }
 
     const postData = {
@@ -174,17 +187,21 @@ const createPost = async (req, res) => {
       destination,
       departureDate,
       arrivalApprox: arrivalApprox || undefined,
-      capacity: String(capacity),
+      capacity: capacity ? String(capacity) : (category === 'passenger' ? `${seats} lugares` : `${weight} kg`),
+      seats,
+      weight,
+      dimensions,
       description,
       author: req.user.id,
     };
 
     if (type === 'offer' && vehicle) {
       postData.vehicle = {
+        brand: vehicle.brand ? String(vehicle.brand).trim() : undefined,
+        model: vehicle.model ? String(vehicle.model).trim() : undefined,
+        color: vehicle.color ? String(vehicle.color).trim() : undefined,
         photoDataUrl: vehicle.photoDataUrl,
         licensePlate: String(vehicle.licensePlate).trim(),
-        vtvExpiry: new Date(vehicle.vtvExpiry),
-        insuranceVerified: !!vehicle.insuranceVerified,
         extraNotes: vehicle.extraNotes ? String(vehicle.extraNotes).slice(0, 300) : undefined,
       };
     }
@@ -194,6 +211,7 @@ const createPost = async (req, res) => {
 
     res.status(201).json(sanitizePostForViewer(populated, req.user));
   } catch (error) {
+    console.error("Error creating post:", error);
     res.status(400).json({ message: error.message });
   }
 };
@@ -311,11 +329,79 @@ const deletePost = async (req, res) => {
   }
 };
 
+// @desc    Update post
+// @route   PATCH /api/posts/:id
+// @access  Private
+const updatePost = async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.id);
+    if (!post) return res.status(404).json({ message: 'Post not found' });
+
+    if (post.author.toString() !== req.user.id) {
+      return res.status(401).json({ message: 'No autorizado para editar esta publicación' });
+    }
+
+    const {
+      type,
+      category,
+      origin,
+      destination,
+      departureDate,
+      arrivalApprox,
+      capacity,
+      seats,
+      weight,
+      dimensions,
+      description,
+      vehicle,
+    } = req.body;
+
+    // Actualizar campos básicos
+    if (type) post.type = type;
+    if (category) post.category = category;
+    if (origin) post.origin = origin;
+    if (destination) post.destination = destination;
+    if (departureDate) post.departureDate = departureDate;
+    if (arrivalApprox !== undefined) post.arrivalApprox = arrivalApprox;
+    
+    // Capacidad: si se envía capacity explícito se usa; si no se calcula
+    if (capacity) {
+        post.capacity = String(capacity);
+    } else if (seats !== undefined || weight !== undefined) {
+        post.capacity = category === 'passenger' ? `${seats || 0} lugares` : `${weight || 0} kg`;
+    }
+    
+    if (seats !== undefined) post.seats = seats;
+    if (weight !== undefined) post.weight = weight;
+    if (dimensions) post.dimensions = dimensions;
+    if (description !== undefined) post.description = description;
+
+    // Vehículo (solo si es oferta)
+    if (post.type === 'offer' && vehicle) {
+      post.vehicle = {
+        ...post.vehicle,
+        photoDataUrl: vehicle.photoDataUrl || post.vehicle?.photoDataUrl,
+        licensePlate: (vehicle.licensePlate || post.vehicle?.licensePlate || '').trim(),
+        vtvExpiry: vehicle.vtvExpiry ? new Date(vehicle.vtvExpiry) : post.vehicle?.vtvExpiry,
+        insuranceVerified: vehicle.insuranceVerified !== undefined ? !!vehicle.insuranceVerified : !!post.vehicle?.insuranceVerified,
+        extraNotes: vehicle.extraNotes !== undefined ? String(vehicle.extraNotes).slice(0, 300) : post.vehicle?.extraNotes,
+      };
+    }
+
+    await post.save();
+    const updated = await Post.findById(post._id).populate('author', 'name profileImage phone email');
+    res.status(200).json(sanitizePostForViewer(updated, req.user));
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
+
 module.exports = {
   getPosts,
   getPost,
   createPost,
   deletePost,
+  updatePost,
   expressInterest,
   respondToInterest,
   markPostComplete,

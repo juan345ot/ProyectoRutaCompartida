@@ -7,6 +7,8 @@ import { useTheme } from '@/context/ThemeContext';
 import { usePathname } from 'next/navigation';
 import NavProfileDropdown from './NavProfileDropdown';
 import NavMobileMenu from './NavMobileMenu';
+import NotificationBell from './NotificationBell';
+import Logo from './Logo';
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -15,6 +17,12 @@ export default function Navbar() {
   const { theme, toggleTheme } = useTheme();
   const dropdownRef = useRef(null);
   const pathname = usePathname();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setMounted(true), 0);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Reset menu states on navigation without an Effect to avoid cascading render lint errors
   const [lastPathname, setLastPathname] = useState(pathname);
@@ -41,9 +49,9 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex items-center">
-            <Link href="/" className="flex items-center gap-2">
-              <Route className="h-8 w-8 text-white" />
-              <span className="font-outfit font-bold text-xl tracking-tight text-white">
+            <Link href="/" className="flex items-center gap-3 group">
+              <Logo className="h-10 w-10 shrink-0 transition-transform group-hover:scale-110" />
+              <span className="font-outfit font-black text-2xl tracking-tight text-white">
                 Ruta Compartida
               </span>
             </Link>
@@ -65,16 +73,17 @@ export default function Navbar() {
             </Link>
 
             <button
-              onClick={toggleTheme}
-              className="p-2 ml-1 mr-1 rounded-full hover:bg-white/10 text-brand-100 transition-colors"
-              aria-label="Alternar tema"
-            >
-              {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-            </button>
+               onClick={toggleTheme}
+               className="p-2 ml-1 mr-1 rounded-full hover:bg-white/10 text-brand-100 transition-colors"
+               aria-label="Alternar tema"
+             >
+               {mounted ? (theme === 'light' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />) : <div className="h-5 w-5" />}
+             </button>
             <div className="w-px h-6 bg-white/20 mx-1"></div>
             
             {isAuthenticated ? (
                 <div className="relative flex items-center gap-4" ref={dropdownRef}>
+                  <NotificationBell />
                   <Link href="/publish" className="bg-brand-400 hover:bg-brand-300 text-white font-semibold px-5 py-2 rounded-full shadow-sm hover:shadow-md transition-all">
                      + Publicar
                   </Link>
@@ -106,13 +115,14 @@ export default function Navbar() {
 
           {/* Mobile menu button */}
           <div className="flex items-center md:hidden gap-4">
+            {isAuthenticated && <NotificationBell />}
             <button
-              onClick={toggleTheme}
-              className="p-1 text-brand-100 hover:text-white transition-colors"
-              aria-label="Alternar tema"
-            >
-              {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-            </button>
+               onClick={toggleTheme}
+               className="p-1 text-brand-100 hover:text-white transition-colors"
+               aria-label="Alternar tema"
+             >
+               {mounted ? (theme === 'light' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />) : <div className="h-5 w-5" />}
+             </button>
             
             {isAuthenticated && !isMenuOpen && (
                <div className="h-8 w-8 rounded-full bg-brand-800 flex items-center justify-center text-white font-bold border border-brand-500">

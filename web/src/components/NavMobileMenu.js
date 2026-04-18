@@ -44,8 +44,12 @@ export default function NavMobileMenu({
             <Link href="/publish" className="px-4 py-3 rounded-xl hover:bg-gray-50 text-brand-600 font-medium flex items-center gap-2">✚ Publicar Viaje</Link>
             <Link href="/profile" className="px-4 py-3 rounded-xl hover:bg-gray-50 text-gray-700">Mis Datos</Link>
             <Link href="/my-posts" className="px-4 py-3 rounded-xl hover:bg-gray-50 text-gray-700">Mis Publicaciones</Link>
+            <Link href="/my-bookings" className="px-4 py-3 rounded-xl hover:bg-gray-50 text-gray-700">Mis Solicitudes</Link>
             <Link href="/history" className="px-4 py-3 rounded-xl hover:bg-gray-50 text-gray-700">Rutas Compartidas</Link>
-            <Link href="/reviews" className="px-4 py-3 rounded-xl hover:bg-gray-50 text-gray-700">Mis Opiniones</Link>
+
+            {(user.role === 'admin' || user.email === 'juanignacio295@gmail.com') && (
+              <Link href="/admin" className="px-4 py-3 rounded-xl bg-brand-50 text-brand-700 font-bold mt-2">Panel de Control</Link>
+            )}
           </>
         ) : (
           <Link href="/login" className="accent-button justify-center mt-2 mx-2 flex items-center">

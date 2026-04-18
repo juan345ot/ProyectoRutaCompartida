@@ -25,7 +25,11 @@ const interestRequestSchema = new mongoose.Schema(
 
 const vehicleSchema = new mongoose.Schema(
   {
-    photoDataUrl: { type: String }, // base64 image; only for offers
+    brand: { type: String, trim: true },       // Marca: Ford, Toyota...
+    model: { type: String, trim: true },       // Modelo: Fiesta, Corolla...
+    year: { type: String, trim: true },        // Año
+    color: { type: String, trim: true },       // Color: Rojo, Blanco...
+    photoDataUrl: { type: String },            // base64 image; only for offers
     licensePlate: { type: String, trim: true },
     vtvExpiry: { type: Date },
     insuranceVerified: { type: Boolean, default: false },
@@ -66,6 +70,17 @@ const postSchema = new mongoose.Schema(
     capacity: {
       type: String,
       required: true,
+    },
+    seats: {
+      type: Number, // Asientos disponibles (para pasajeros)
+    },
+    weight: {
+      type: Number, // Peso máximo en kg (para paquetes)
+    },
+    dimensions: {
+      length: { type: Number }, // cm
+      width: { type: Number },
+      height: { type: Number },
     },
     description: {
       type: String,

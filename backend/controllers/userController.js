@@ -94,6 +94,37 @@ const getMyPendingTripRequests = async (req, res) => {
   }
 };
 
+// @desc    Get admin statistics
+// @route   GET /api/users/admin/stats
+// @access  Private/Admin
+const getAdminStats = async (req, res) => {
+  try {
+    // Verificar si el usuario es administrador
+    const userRole = req.user.role; // Asegúrate de que este rol esté en req.user
+    if (userRole !== 'admin') {
+      // Para desarrollo/pruebas si el email sigue siendo juanignacio295@gmail.com lo dejamos temporalmente,
+      // pero preferiblemente rechazar si req.user.role !== 'admin'.
+      if (req.user.email !== 'juanignacio295@gmail.com') {
+         return res.status(403).json({ message: 'No autorizado. Se requiere rol de administrador.' });
+      }
+    }
+
+    const totalUsers = await User.countDocuments();
+    const activePosts = await Post.countDocuments({ status: 'active' });
+    const completedPosts = await Post.countDocuments({ status: 'completed' });
+    const totalPosts = await Post.countDocuments();
+
+    res.status(200).json({
+      totalUsers,
+      activePosts,
+      completedPosts,
+      totalPosts,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 // @desc    Update user profile
 // @route   PUT /api/users/me
 // @access  Private
@@ -133,4 +164,5 @@ module.exports = {
   getMyHistory,
   getMyPendingTripRequests,
   updateProfile,
+  getAdminStats,
 };

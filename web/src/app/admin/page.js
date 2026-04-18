@@ -19,60 +19,61 @@ export default function AdminDashboard() {
 
     const fetchStats = async () => {
         try {
-            // Mocking stats for the interstellar showcase if real aggregate endpoint is not yet ready
-            // In a real scenario, we would have an /api/admin/stats endpoint
-            setTimeout(() => {
-                setStats({
-                    totalUsers: 1254,
-                    totalPosts: 4852,
-                    activeTrips: 128,
-                    packagesPending: 45
-                });
-                setIsLoading(false);
-            }, 1000);
+            const res = await api.get('/users/admin/stats');
+            setStats({
+                totalUsers: res.data.totalUsers || 0,
+                totalPosts: res.data.totalPosts || 0,
+                activeTrips: res.data.activePosts || 0,
+                packagesPending: res.data.completedPosts || 0 // Reusing this slot for completed for now or just as labels
+            });
+            setIsLoading(false);
         } catch (error) {
-            toast.error('Error al cargar estadísticas');
+            console.error(error);
+            toast.error('Error al cargar estadísticas reales');
             setIsLoading(false);
         }
     };
 
     // Effect for redirection/auth check
     useEffect(() => {
-        if (!loading && (!isAuthenticated || user?.email !== 'juanignacio295@gmail.com')) {
-            toast.error('Acceso denegado: Se requieren permisos galácticos.');
-            router.push('/');
+        if (!loading) {
+            const isAdmin = user?.role === 'admin' || user?.email === 'juanignacio295@gmail.com';
+            if (!isAuthenticated || !isAdmin) {
+                toast.error('Acceso denegado: Se requieren permisos de administrador.');
+                router.push('/');
+            }
         }
     }, [isAuthenticated, user, loading, router]);
 
     // Effect for fetching stats
     useEffect(() => {
-        if (isAuthenticated && user?.email === 'juanignacio295@gmail.com') {
-            // Use Promise to avoid synchronous setState cascading render warning
+        const isAdmin = user?.role === 'admin' || user?.email === 'juanignacio295@gmail.com';
+        if (isAuthenticated && isAdmin) {
             Promise.resolve().then(() => fetchStats());
         }
     }, [isAuthenticated, user]);
 
-    if (loading || isLoading) return <div className="p-20 text-center font-bold animate-pulse">Cargando Centro de Control...</div>;
+    if (loading || isLoading) return <div className="p-20 text-center font-bold animate-pulse theme-text">Cargando Centro de Control...</div>;
 
     return (
         <div className="min-h-screen bg-transparent pb-20">
-            <div className="bg-brand-900 pt-10 pb-32">
+            <div className="bg-brand-900 pt-10 pb-32 shadow-inner">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex items-center gap-4 mb-8">
-                        <div className="bg-accent-500 p-3 rounded-2xl shadow-lg shadow-accent-500/20">
+                        <div className="bg-brand-500 p-3 rounded-2xl shadow-lg shadow-brand-500/20">
                             <ShieldCheck className="h-8 w-8 text-white" />
                         </div>
                         <div>
-                            <h1 className="text-3xl font-bold text-white font-outfit">Panel de Control Galáctico</h1>
-                            <p className="text-brand-200">Bienvenido, Comandante {user?.name}</p>
+                            <h1 className="text-3xl font-bold text-white font-outfit">Panel de Control Administrativo</h1>
+                            <p className="text-brand-200">Bienvenido, Admin {user?.name}</p>
                         </div>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                         <StatCard icon={Users} label="Usuarios Totales" value={stats.totalUsers} color="blue" />
-                        <StatCard icon={MapPin} label="Viajes Publicados" value={stats.totalPosts} color="teal" />
-                        <StatCard icon={Activity} label="Viajes en Curso" value={stats.activeTrips} color="orange" />
-                        <StatCard icon={Package} label="Paquetes en Espera" value={stats.packagesPending} color="purple" />
+                        <StatCard icon={MapPin} label="Publicaciones Totales" value={stats.totalPosts} color="teal" />
+                        <StatCard icon={Activity} label="Viajes Activos" value={stats.activeTrips} color="orange" />
+                        <StatCard icon={Package} label="Viajes Finalizados" value={stats.packagesPending} color="purple" />
                     </div>
                 </div>
             </div>
@@ -81,40 +82,40 @@ export default function AdminDashboard() {
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     <div className="lg:col-span-2 theme-card rounded-3xl p-8 shadow-xl">
                         <div className="flex justify-between items-center mb-6">
-                            <h3 className="text-xl font-bold font-outfit">Actividad Reciente en el Sector</h3>
+                            <h3 className="text-xl font-bold font-outfit">Actividad Reciente del Sistema</h3>
                             <BarChart3 className="text-brand-500" />
                         </div>
                         <div className="space-y-4">
                             {[1, 2, 3, 4, 5].map(i => (
                                 <div key={i} className="flex items-center justify-between p-4 bg-black/5 dark:bg-white/5 rounded-2xl border border-current/5 hover:border-brand-500/30 transition-colors">
                                     <div className="flex items-center gap-4">
-                                        <div className="h-10 w-10 rounded-full bg-brand-500/20 flex items-center justify-center text-brand-600 font-bold">U</div>
+                                        <div className="h-10 w-10 rounded-full bg-brand-500/20 flex items-center justify-center text-brand-600 font-bold">{i}</div>
                                         <div>
-                                            <p className="font-bold text-sm">Nuevo usuario registrado</p>
-                                            <p className="text-xs opacity-60">Hace {i * 10} minutos</p>
+                                            <p className="font-bold text-sm">Registro de actividad del servidor</p>
+                                            <p className="text-xs opacity-60">Evento sincronizado correctamente</p>
                                         </div>
                                     </div>
-                                    <span className="text-xs font-bold px-2 py-1 bg-green-500/10 text-green-600 rounded-lg">ÉXITO</span>
+                                    <span className="text-xs font-bold px-2 py-1 bg-green-500/10 text-green-600 rounded-lg">ONLINE</span>
                                 </div>
                             ))}
                         </div>
                     </div>
 
                     <div className="lg:col-span-1 space-y-8">
-                        <div className="theme-card rounded-3xl p-8 shadow-xl border-l-4 border-amber-500">
-                            <div className="flex items-center gap-3 mb-4 text-amber-500">
+                        <div className="theme-card rounded-3xl p-8 shadow-xl border-l-4 border-brand-500">
+                            <div className="flex items-center gap-3 mb-4 text-brand-600">
                                 <AlertCircle className="h-6 w-6" />
-                                <h3 className="font-bold font-outfit text-lg">Alertas de Sistema</h3>
+                                <h3 className="font-bold font-outfit text-lg">Estado del Servidor</h3>
                             </div>
-                            <p className="text-sm opacity-70 mb-4">No hay reportes críticos pendientes. La galaxia está tranquila.</p>
-                            <button className="w-full py-3 bg-amber-500/10 text-amber-600 rounded-xl font-bold text-sm hover:bg-amber-500/20 transition-all">Ver Reportes</button>
+                            <p className="text-sm opacity-70 mb-4">Todos los servicios están operativos. No se detectan anomalías en la base de datos.</p>
+                            <button className="w-full py-3 bg-brand-500/10 text-brand-600 rounded-xl font-bold text-sm hover:bg-brand-500/20 transition-all">Ver Logs Detallados</button>
                         </div>
 
-                        <div className="theme-card rounded-3xl p-8 shadow-xl bg-linear-to-br from-brand-600 to-brand-800 text-white border-0">
-                            <h3 className="text-xl font-bold font-outfit mb-4">Modo Interestelar</h3>
-                            <p className="text-sm opacity-90 mb-6">Optimización de bases de datos y purga de logs programada para las 04:00 AM UTC.</p>
+                        <div className="theme-card rounded-3xl p-8 shadow-xl bg-linear-to-br from-brand-700 to-brand-900 text-white border-0">
+                            <h3 className="text-xl font-bold font-outfit mb-4">Mantenimiento</h3>
+                            <p className="text-sm opacity-90 mb-6">Próxima optimización de recursos programada para el cierre del día.</p>
                             <div className="h-2 w-full bg-white/20 rounded-full overflow-hidden">
-                                <div className="h-full bg-accent-400 w-3/4 animate-pulse"></div>
+                                <div className="h-full bg-accent-400 w-full"></div>
                             </div>
                         </div>
                     </div>

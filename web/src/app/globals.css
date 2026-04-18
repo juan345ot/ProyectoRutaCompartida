@@ -33,20 +33,27 @@
   }
 }
 
+/* 
+  Supresion de advertencias para Tailwind 4 en VS Code
+  @tailwind base;
+  @tailwind components;
+  @tailwind utilities;
+*/
+
 @layer utilities {
   .theme-text {
     color: var(--page-text, #0f172a);
   }
 
   .glass-card {
-    @apply bg-white/80 backdrop-blur-md border border-white/20 shadow-xl;
+    @apply bg-white/80 backdrop-blur-md border border-white/20 shadow-xl rounded-4xl;
   }
 
   .theme-card {
     background-color: var(--card-bg);
     color: var(--card-text);
     border: 1px solid var(--card-border);
-    @apply transition-all duration-500 shadow-xl;
+    @apply transition-all duration-500 shadow-xl rounded-4xl;
   }
 
   /* Override common Tailwind color classes to use theme variables */
@@ -73,11 +80,11 @@
     color: var(--card-text-muted) !important;
   }
 
-  /* Badges/pills - use a dark overlay so text is always white regardless of mode */
-  .theme-card [class*="bg-brand-50"],
-  .theme-card [class*="bg-accent-50"],
-  .theme-card [class*="bg-gray-50"] {
-    background-color: rgba(0, 0, 0, 0.15) !important;
+  /* Badges/pills - use a dark overlay for VERY light colors so they don't wash out */
+  .theme-card .bg-brand-50:not(.bg-brand-500),
+  .theme-card .bg-accent-50:not(.bg-accent-500),
+  .theme-card .bg-gray-50:not(.bg-gray-500) {
+    background-color: rgba(0, 0, 0, 0.1) !important;
     color: var(--card-text) !important;
     border: 1px solid rgba(0, 0, 0, 0.1);
   }
@@ -117,14 +124,14 @@
   }
 
   .primary-button {
-    @apply inline-flex items-center justify-center rounded-full bg-brand-500 px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-brand-600 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600;
+    @apply inline-flex items-center justify-center rounded-4xl bg-brand-500 px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-brand-600 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600;
   }
 
   .accent-button {
-    @apply inline-flex items-center justify-center rounded-full bg-accent-500 px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-accent-600 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-600;
+    @apply inline-flex items-center justify-center rounded-4xl bg-accent-500 px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-accent-600 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 focus-visible:outline-2 focus-visible:outline-accent-600;
   }
 
   .outline-button {
-    @apply inline-flex items-center justify-center rounded-full bg-transparent px-6 py-3 text-sm font-semibold text-brand-600 ring-1 ring-inset ring-brand-200 hover:bg-brand-50 hover:ring-brand-300 transition-all duration-200;
+    @apply inline-flex items-center justify-center rounded-4xl bg-transparent px-6 py-3 text-sm font-semibold text-brand-600 ring-1 ring-inset ring-brand-200 hover:bg-brand-50 hover:ring-brand-300 transition-all duration-200;
   }
 }

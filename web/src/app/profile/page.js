@@ -52,19 +52,19 @@ export default function ProfilePage() {
   if (loading || !isAuthenticated) return null;
 
   return (
-    <div className="min-h-screen bg-background py-10">
+    <div className="min-h-screen theme-bg py-10">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center gap-3 mb-8">
-            <div className="h-10 w-10 bg-brand-100 rounded-2xl flex items-center justify-center text-brand-600">
+            <div className="h-10 w-10 bg-brand-500/10 rounded-2xl flex items-center justify-center text-brand-600">
                <User className="h-5 w-5" />
             </div>
-            <h1 className="text-3xl font-bold text-gray-900 font-outfit">Mis Datos</h1>
+            <h1 className="text-3xl font-bold theme-text font-outfit uppercase tracking-tight">Mis Datos</h1>
         </div>
 
-        <div className="bg-white rounded-3xl shadow-xl shadow-gray-200/50 border border-gray-100 overflow-hidden mb-8 relative">
+        <div className="theme-card rounded-[2.5rem] shadow-2xl overflow-hidden mb-8 relative border border-current/5">
             <div className="bg-linear-to-r from-brand-600 to-brand-400 h-32"></div>
             <div className="px-8 pb-8 flex flex-col sm:flex-row gap-6 items-start sm:items-end -mt-12 relative z-10">
-                <div className="h-28 w-28 rounded-full border-4 border-white bg-white shadow-lg relative overflow-hidden group">
+                <div className="h-28 w-28 rounded-full border-4 border-current/20 bg-white dark:bg-gray-800 shadow-xl relative overflow-hidden group">
                     <Image 
                       src={formData.profileImage || user.profileImage || `https://ui-avatars.com/api/?name=${user.name}&background=14b8a6&color=fff`} 
                       alt={user.name} 
@@ -73,20 +73,20 @@ export default function ProfilePage() {
                     />
                 </div>
                 <div className="flex-1 mb-2">
-                    <h2 className="text-3xl font-bold text-gray-900">{user.name}</h2>
-                    <p className="text-gray-500 flex items-center gap-1"><Mail className="h-4 w-4" /> {user.email}</p>
+                    <h2 className="text-3xl font-black theme-text uppercase tracking-tighter leading-none mb-1">{user.name}</h2>
+                    <p className="theme-text opacity-50 flex items-center gap-1 text-sm font-medium"><Mail className="h-4 w-4" /> {user.email}</p>
                 </div>
-                <div className="bg-amber-50 rounded-2xl p-4 border border-amber-100 mb-2 flex items-center gap-3 shadow-sm">
-                   <div className="text-amber-500 font-bold text-3xl">★ {user.averageRating || '0.0'}</div>
-                   <div className="text-sm text-gray-600 leading-tight">
+                <div className="bg-brand-500/10 rounded-3xl p-4 border border-brand-500/10 mb-2 flex items-center gap-4 shadow-xl backdrop-blur-sm">
+                   <div className="text-brand-500 font-black text-3xl">★ {user.averageRating || '0.0'}</div>
+                   <div className="text-[10px] text-gray-900 font-black uppercase leading-tight opacity-70">
                      Puntaje<br/>Promedio
                    </div>
                 </div>
             </div>
         </div>
 
-        <div className="bg-white rounded-3xl shadow-xl shadow-gray-200/50 border border-gray-100 p-8 md:p-10">
-            <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+        <div className="theme-card rounded-[2.5rem] shadow-2xl p-8 md:p-12 border border-current/5">
+            <h3 className="font-black theme-text mb-8 flex items-center gap-3 uppercase tracking-widest text-[11px]">
                 <Activity className="h-5 w-5 text-brand-500" /> Información Personal
             </h3>
 

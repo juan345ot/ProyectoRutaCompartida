@@ -73,12 +73,12 @@ export default function ReviewsPage() {
             </div>
             <h1 className="text-3xl font-bold theme-text font-outfit">Mis calificaciones</h1>
           </div>
-          <div className="bg-amber-50 dark:bg-amber-900/30 rounded-xl px-4 py-2 border border-amber-100 flex items-center gap-2">
-            <span className="text-amber-700 dark:text-amber-300 font-bold text-xl">
+          <div className="bg-brand-100 dark:bg-brand-900/30 rounded-xl px-4 py-2 border border-brand-200 dark:border-brand-800 flex items-center gap-2 shadow-sm">
+            <span className="text-black dark:text-white font-black text-xl">
               {user.averageRating || "0.0"}
             </span>
             <Star className="h-5 w-5 text-amber-500 fill-amber-500" />
-            <span className="text-sm text-amber-800 dark:text-amber-200">({user.totalReviews || 0})</span>
+            <span className="text-sm font-bold text-gray-900 dark:text-gray-300">({user.totalReviews || 0})</span>
           </div>
         </div>
 
@@ -89,7 +89,7 @@ export default function ReviewsPage() {
             className={`px-5 py-2.5 rounded-full font-semibold text-sm flex items-center gap-2 ${
               section === "received"
                 ? "bg-brand-600 text-white"
-                : "bg-white/80 theme-text border border-brand-200"
+                : "bg-white/80 dark:bg-gray-800 text-gray-700 dark:text-gray-200 border border-brand-200 dark:border-brand-800"
             }`}
           >
             <User className="h-4 w-4" /> Que recibí ({received.length})
@@ -100,7 +100,7 @@ export default function ReviewsPage() {
             className={`px-5 py-2.5 rounded-full font-semibold text-sm flex items-center gap-2 ${
               section === "given"
                 ? "bg-brand-600 text-white"
-                : "bg-white/80 theme-text border border-brand-200"
+                : "bg-white/80 dark:bg-gray-800 text-gray-700 dark:text-gray-200 border border-brand-200 dark:border-brand-800"
             }`}
           >
             <Send className="h-4 w-4" /> Que hice ({given.length})
@@ -125,7 +125,7 @@ export default function ReviewsPage() {
               ? received.map((review) => (
                   <div
                     key={review._id}
-                    className="theme-card rounded-3xl shadow-lg border p-6 flex flex-col sm:flex-row gap-6"
+                    className="bg-brand-50 dark:bg-white/5 border border-brand-100 dark:border-white/10 rounded-3xl shadow-lg p-6 flex flex-col sm:flex-row gap-6"
                   >
                     <div className="shrink-0 flex flex-col items-center w-32">
                       <div className="h-14 w-14 rounded-full relative overflow-hidden mb-2 border-2 border-brand-100">
@@ -157,7 +157,7 @@ export default function ReviewsPage() {
               : given.map((review) => (
                   <div
                     key={review._id}
-                    className="theme-card rounded-3xl shadow-lg border p-6 flex flex-col sm:flex-row gap-6"
+                    className="bg-brand-50 dark:bg-white/5 border border-brand-100 dark:border-white/10 rounded-3xl shadow-lg p-6 flex flex-col sm:flex-row gap-6"
                   >
                     <div className="shrink-0 flex flex-col items-center w-32">
                       <div className="h-14 w-14 rounded-full relative overflow-hidden mb-2 border-2 border-brand-100">

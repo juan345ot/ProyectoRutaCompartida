@@ -146,100 +146,100 @@ export default function SearchPage() {
           
           {/* Filters Sidebar */}
           <div className="lg:col-span-1">
-             <div className="theme-card rounded-2xl p-6 sticky top-24">
-                <div className="flex items-center justify-between mb-6 border-b border-current/10 pb-4">
-                  <div className="flex items-center gap-2">
-                    <Filter className="h-5 w-5" />
-                    <h2 className="font-bold text-lg font-outfit">Filtros</h2>
-                  </div>
-                  {(filters.category || filters.type) && (
-                    <button onClick={clearFilters} className="text-xs text-brand-600 font-bold hover:underline flex items-center gap-1">
-                      <X className="h-3 w-3" /> Limpiar
-                    </button>
-                  )}
+             <div className="theme-card rounded-2xl p-8 sticky top-24 shadow-xl">
+                <div className="flex items-center justify-between mb-8 border-b border-current/10 pb-5">
+                   <div className="flex items-center gap-3">
+                     <Filter className="h-6 w-6 text-brand-500" />
+                     <h2 className="font-black text-xl font-outfit uppercase tracking-tight">Filtros</h2>
+                   </div>
+                   {(filters.category || filters.type) && (
+                     <button onClick={clearFilters} className="text-sm text-brand-600 font-black hover:underline flex items-center gap-1.5">
+                       <X className="h-4 w-4" /> Limpiar
+                     </button>
+                   )}
                 </div>
                 
-                <div className="space-y-6">
-                  <div>
-                    <h3 className="text-xs font-bold uppercase tracking-wider mb-3 opacity-60">Categoría</h3>
-                    <div className="space-y-1">
-                      <label className="flex items-center gap-3 p-2 hover:bg-black/5 rounded-lg cursor-pointer transition-colors">
-                        <input 
-                          type="radio" 
-                          name="category" 
-                          checked={filters.category === ''} 
-                          onChange={() => handleFilterChange('category', '')}
-                          className="text-brand-600 focus:ring-brand-500" 
-                        />
-                        <span className="text-sm font-medium">Todos</span>
-                      </label>
-                      <label className="flex items-center gap-3 p-2 hover:bg-black/5 rounded-lg cursor-pointer transition-colors">
-                        <input 
-                          type="radio" 
-                          name="category" 
-                          checked={filters.category === 'passenger'} 
-                          onChange={() => handleFilterChange('category', 'passenger')}
-                          className="text-brand-600 focus:ring-brand-500" 
-                        />
-                        <span className="flex items-center gap-2 text-sm font-medium"><User className="h-4 w-4"/> Pasajeros</span>
-                      </label>
-                      <label className="flex items-center gap-3 p-2 hover:bg-black/5 rounded-lg cursor-pointer transition-colors">
-                        <input 
-                          type="radio" 
-                          name="category" 
-                          checked={filters.category === 'package'} 
-                          onChange={() => handleFilterChange('category', 'package')}
-                          className="text-brand-600 focus:ring-brand-500" 
-                        />
-                        <span className="flex items-center gap-2 text-sm font-medium"><Package className="h-4 w-4"/> Encomiendas</span>
-                      </label>
-                    </div>
-                  </div>
+                <div className="space-y-8">
+                   <div>
+                     <h3 className="text-[11px] font-black uppercase tracking-[0.2em] mb-4 opacity-50">Categoría</h3>
+                     <div className="space-y-2">
+                       <label className="flex items-center gap-4 p-3 hover:bg-brand-500/5 rounded-xl cursor-pointer transition-all border border-transparent hover:border-brand-500/10">
+                         <input 
+                           type="radio" 
+                           name="category" 
+                           checked={filters.category === ''} 
+                           onChange={() => handleFilterChange('category', '')}
+                           className="h-5 w-5 text-brand-600 focus:ring-brand-500" 
+                         />
+                         <span className="text-base font-black uppercase tracking-tight">Todos</span>
+                       </label>
+                       <label className="flex items-center gap-4 p-3 hover:bg-brand-500/5 rounded-xl cursor-pointer transition-all border border-transparent hover:border-brand-500/10">
+                         <input 
+                           type="radio" 
+                           name="category" 
+                           checked={filters.category === 'passenger'} 
+                           onChange={() => handleFilterChange('category', 'passenger')}
+                           className="h-5 w-5 text-brand-600 focus:ring-brand-500" 
+                         />
+                         <span className="flex items-center gap-3 text-base font-black uppercase tracking-tight"><User className="h-5 w-5 text-brand-500"/> Pasajeros</span>
+                       </label>
+                       <label className="flex items-center gap-4 p-3 hover:bg-brand-500/5 rounded-xl cursor-pointer transition-all border border-transparent hover:border-brand-500/10">
+                         <input 
+                           type="radio" 
+                           name="category" 
+                           checked={filters.category === 'package'} 
+                           onChange={() => handleFilterChange('category', 'package')}
+                           className="h-5 w-5 text-brand-600 focus:ring-brand-500" 
+                         />
+                         <span className="flex items-center gap-3 text-base font-black uppercase tracking-tight"><Package className="h-5 w-5 text-brand-500"/> Encomiendas</span>
+                       </label>
+                     </div>
+                   </div>
 
-                  <div>
-                    <h3 className="text-xs font-bold uppercase tracking-wider mb-3 opacity-60">Tipo</h3>
-                    <div className="space-y-1">
-                      <label className="flex items-center gap-3 p-2 hover:bg-black/5 rounded-lg cursor-pointer transition-colors">
-                        <input 
-                          type="radio" 
-                          name="type" 
-                          checked={filters.type === ''} 
-                          onChange={() => handleFilterChange('type', '')}
-                          className="text-brand-600 focus:ring-brand-500" 
-                        />
-                        <span className="text-sm font-medium">Todos</span>
-                      </label>
-                      <label className="flex items-center gap-3 p-2 hover:bg-black/5 rounded-lg cursor-pointer transition-colors">
-                        <input 
-                          type="radio" 
-                          name="type" 
-                          checked={filters.type === 'offer'} 
-                          onChange={() => handleFilterChange('type', 'offer')}
-                          className="text-brand-600 focus:ring-brand-500" 
-                        />
-                        <span className="text-sm font-medium">Ofrecen Lugar</span>
-                      </label>
-                      <label className="flex items-center gap-3 p-2 hover:bg-black/5 rounded-lg cursor-pointer transition-colors">
-                        <input 
-                          type="radio" 
-                          name="type" 
-                          checked={filters.type === 'request'} 
-                          onChange={() => handleFilterChange('type', 'request')}
-                          className="text-brand-600 focus:ring-brand-500" 
-                        />
-                        <span className="text-sm font-medium">Buscan Enviar</span>
-                      </label>
-                    </div>
-                  </div>
+                   <div>
+                     <h3 className="text-[11px] font-black uppercase tracking-[0.2em] mb-4 opacity-50">Tipo de Viaje</h3>
+                     <div className="space-y-2">
+                       <label className="flex items-center gap-4 p-3 hover:bg-brand-500/5 rounded-xl cursor-pointer transition-all border border-transparent hover:border-brand-500/10">
+                         <input 
+                           type="radio" 
+                           name="type" 
+                           checked={filters.type === ''} 
+                           onChange={() => handleFilterChange('type', '')}
+                           className="h-5 w-5 text-brand-600 focus:ring-brand-500" 
+                         />
+                         <span className="text-base font-black uppercase tracking-tight">Todos</span>
+                       </label>
+                       <label className="flex items-center gap-4 p-3 hover:bg-brand-500/5 rounded-xl cursor-pointer transition-all border border-transparent hover:border-brand-500/10">
+                         <input 
+                           type="radio" 
+                           name="type" 
+                           checked={filters.type === 'offer'} 
+                           onChange={() => handleFilterChange('type', 'offer')}
+                           className="h-5 w-5 text-brand-600 focus:ring-brand-500" 
+                         />
+                         <span className="text-base font-black uppercase tracking-tight text-emerald-600 dark:text-emerald-400">Ofrecen Lugar</span>
+                       </label>
+                       <label className="flex items-center gap-4 p-3 hover:bg-brand-500/5 rounded-xl cursor-pointer transition-all border border-transparent hover:border-brand-500/10">
+                         <input 
+                           type="radio" 
+                           name="type" 
+                           checked={filters.type === 'request'} 
+                           onChange={() => handleFilterChange('type', 'request')}
+                           className="h-5 w-5 text-brand-600 focus:ring-brand-500" 
+                         />
+                         <span className="text-base font-black uppercase tracking-tight text-orange-600 dark:text-orange-400">Buscan Enviar</span>
+                       </label>
+                     </div>
+                   </div>
                 </div>
              </div>
           </div>
 
           {/* Feed */}
-          <div className="lg:col-span-3 space-y-5">
-            <div className="flex justify-between items-center mb-2">
-               <span className="font-semibold text-gray-600 dark:text-gray-300 text-sm">{posts.length} viajes encontrados</span>
-               <select className="border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 font-medium focus:ring-0 cursor-pointer rounded-lg px-3 py-1.5 text-sm">
+          <div className="lg:col-span-3 space-y-6">
+            <div className="flex justify-between items-center mb-4">
+               <span className="font-black theme-text opacity-60 text-base uppercase tracking-widest">{posts.length} viajes encontrados</span>
+               <select className="theme-card border border-current/10 theme-text font-black uppercase tracking-widest cursor-pointer rounded-2xl px-6 py-3 text-xs focus:ring-0 shadow-lg">
                   <option>Más recientes</option>
                   <option>Próximos a salir</option>
                </select>
@@ -254,7 +254,11 @@ export default function SearchPage() {
               </div>
             ) : (
               posts.map((post, idx) => (
-                 <SearchPostCard key={post._id} post={post} isAuthenticated={isAuthenticated} user={user} idx={idx} />
+                 <SearchPostCard 
+                   key={post._id} 
+                   post={post} 
+                   apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}
+                 />
               ))
             )}
 

@@ -86,25 +86,25 @@ export default function Home() {
           <div className="theme-card rounded-3xl p-8 md:p-12">
             <div className="grid md:grid-cols-2 gap-12 items-center">
              <div>
-                <h2 className="text-3xl md:text-4xl font-bold font-outfit mb-6">¿Qué es Ruta Compartida?</h2>
-                <p className="text-lg text-gray-600 mb-6 leading-relaxed">
+                <h2 className="text-3xl md:text-4xl font-black font-outfit mb-6 theme-text">¿Qué es Ruta Compartida?</h2>
+                <p className="text-lg theme-text opacity-90 mb-6 leading-relaxed">
                    Ruta Compartida es la plataforma que conecta a personas que necesitan viajar o enviar paquetes con conductores que tienen espacio disponible en sus vehículos.
                 </p>
-                <p className="text-lg text-gray-600 mb-8 leading-relaxed">
+                <p className="text-lg theme-text opacity-90 mb-8 leading-relaxed">
                    Nuestra misión es optimizar los viajes, reducir costos, disminuir el impacto ambiental y crear una comunidad confiable donde todos ganan.
                 </p>
                 <div className="flex flex-col gap-3 mt-1">
                    <div className="flex items-center gap-3">
-                      <div className="h-12 w-12 rounded-full bg-brand-50 flex items-center justify-center text-brand-600 font-bold text-xl">1</div>
-                      <span className="font-medium text-gray-900">Busca tu ruta</span>
+                      <div className="h-12 w-12 rounded-full bg-brand-500/10 flex items-center justify-center text-brand-600 font-black text-xl">1</div>
+                      <span className="font-bold theme-text">Busca tu ruta</span>
                    </div>
                    <div className="flex items-center gap-3">
-                      <div className="h-12 w-12 rounded-full bg-brand-50 flex items-center justify-center text-brand-600 font-bold text-xl">2</div>
-                      <span className="font-medium text-gray-900">Reserva tu lugar</span>
+                      <div className="h-12 w-12 rounded-full bg-brand-500/10 flex items-center justify-center text-brand-600 font-black text-xl">2</div>
+                      <span className="font-bold theme-text">Reserva tu lugar</span>
                    </div>
                    <div className="flex items-center gap-3">
-                      <div className="h-12 w-12 rounded-full bg-brand-50 flex items-center justify-center text-brand-600 font-bold text-xl">3</div>
-                      <span className="font-medium text-gray-900">Viaja seguro</span>
+                      <div className="h-12 w-12 rounded-full bg-brand-500/10 flex items-center justify-center text-brand-600 font-black text-xl">3</div>
+                      <span className="font-bold theme-text">Viaja seguro</span>
                    </div>
                 </div>
              </div>
@@ -141,8 +141,8 @@ export default function Home() {
       <section id="como-funciona" className="py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold font-outfit text-brand-950 mb-4">¿Cómo funciona Ruta Compartida?</h2>
-            <p className="text-brand-900 font-medium max-w-2xl mx-auto">Nuestra plataforma está diseñada para ser simple, rápida y beneficiosa para todos.</p>
+            <h2 className="text-3xl md:text-4xl font-black font-outfit theme-text mb-4">¿Cómo funciona Ruta Compartida?</h2>
+            <p className="theme-text font-bold max-w-2xl mx-auto opacity-80">Nuestra plataforma está diseñada para ser simple, rápida y beneficiosa para todos.</p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">
@@ -174,25 +174,31 @@ export default function Home() {
         </div>
       </section>
       {/* Recent Posts Section (Preview) */}
-      <section className="py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-6 md:p-10 shadow-xl border border-white/20">
+      <section className="py-20 relative overflow-hidden">
+        {/* Abstract background for color */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-brand-500/5 blur-3xl rounded-full"></div>
+        
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="bg-linear-to-br from-white/40 to-white/10 dark:from-white/5 dark:to-transparent backdrop-blur-2xl rounded-[3.5rem] p-8 md:p-12 shadow-2xl border border-white/30 dark:border-white/10">
             <div className="flex flex-col md:flex-row justify-between items-end mb-12">
                <div>
-                 <h2 className="text-3xl md:text-4xl font-bold font-outfit text-gray-900 mb-4">Viajes Recientes</h2>
-                 <p className="text-brand-900 font-medium max-w-2xl">Descubre los últimos viajes publicados por nuestra comunidad.</p>
+                 <div className="inline-block px-4 py-1.5 rounded-full bg-brand-500 text-white text-[10px] font-black uppercase tracking-widest mb-4 shadow-sm">
+                    Rutas de Hoy
+                 </div>
+                 <h2 className="text-3xl md:text-5xl font-black font-outfit theme-text mb-4 tracking-tight">Viajes Recientes</h2>
+                 <p className="theme-text opacity-90 font-medium max-w-xl text-lg leading-relaxed">Conexiones al instante: úmate a la próxima aventura o envía tus paquetes hoy mismo.</p>
                </div>
-               <Link href="/search" className="hidden md:flex items-center text-brand-600 font-semibold hover:text-brand-700 transition-colors mt-4 md:mt-0">
-                 Ver todos <ArrowRight className="ml-2 h-4 w-4" />
+               <Link href="/search" className="hidden md:flex items-center gap-3 bg-brand-500 text-white font-black uppercase text-xs tracking-widest hover:brightness-110 transition-all mt-4 md:mt-0 px-8 py-4 rounded-3xl group shadow-lg shadow-brand-500/20">
+                 Ver Todas <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                </Link>
             </div>
 
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-3 gap-8">
             {loading ? (
                Array.from({ length: 3 }).map((_, i) => <PostCardSkeleton key={`skeleton-${i}`} isThird={i === 2} />)
             ) : recentPosts.length === 0 ? (
-               <div className="col-span-full text-center py-10 opacity-70">
-                 No hay viajes publicados recientemente.
+               <div className="col-span-full text-center py-20 bg-current/5 rounded-3xl border-2 border-dashed border-current/10">
+                 <p className="theme-text opacity-50 font-bold uppercase tracking-widest text-sm">No hay viajes publicados recientemente.</p>
                </div>
             ) : (
                recentPosts.map((post, idx) => (
@@ -201,9 +207,9 @@ export default function Home() {
             )}
           </div>
           
-          <div className="mt-8 text-center md:hidden">
-             <Link href="/search" className="outline-button w-full justify-center">
-               Ver todos los viajes
+          <div className="mt-12 text-center md:hidden">
+             <Link href="/search" className="primary-button w-full justify-center py-4 rounded-2xl shadow-xl shadow-brand-500/20">
+               Explorar todas las rutas
              </Link>
           </div>
         </div>
