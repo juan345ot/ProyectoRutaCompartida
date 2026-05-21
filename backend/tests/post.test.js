@@ -1,3 +1,7 @@
+/**
+ * Tests de integración de publicaciones (listado, validación y creación).
+ * Usa registro HTTP para obtener token y perfil con foto válida.
+ */
 const request = require('supertest');
 const app = require('../server');
 const mongoose = require('mongoose');
@@ -18,6 +22,13 @@ describe('Post API Integration Tests', () => {
       });
     
     token = registerRes.body.token;
+
+    await request(app)
+      .put('/api/users/me')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        profileImage: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==',
+      });
   });
 
   describe('GET /api/posts', () => {
@@ -52,13 +63,13 @@ describe('Post API Integration Tests', () => {
 
     it('should return 201 when payload is valid', async () => {
       const validPayload = {
-        type: 'offer',
+        type: 'request',
         category: 'passenger',
         origin: 'Mar del Plata',
         destination: 'Buenos Aires',
-        departureDate: new Date().toISOString(),
-        capacity: 3,
-        description: 'Viajo tranquilo, mate a bordo.'
+        departureDate: new Date(Date.now() + 86400000).toISOString(),
+        capacity: '1 lugar',
+        description: 'Busco lugar para viajar.',
       };
 
       const res = await request(app)

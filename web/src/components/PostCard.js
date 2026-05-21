@@ -1,12 +1,18 @@
+/**
+ * Tarjeta compacta de publicación para la home y listados breves.
+ * Muestra origen/destino, fecha, disponibilidad y enlace al detalle del viaje.
+ */
 "use client";
 import Link from 'next/link';
 import { MapPin, Calendar, Clock, ArrowRight, User, Package, Users, CheckCircle, Ban, ShieldCheck } from 'lucide-react';
 
 export default function PostCard({ post, isThird = false }) {
+  // Derivados de estado: tipo de publicación y si ya no se puede reservar
   const isOffer = post.type === 'offer';
   const isUnavailable = post.status !== 'active' || (post.category === 'passenger' && post.seats <= 0) || (post.category === 'package' && post.weight <= 0);
   const isFinished = post.status === 'completed' || post.status === 'cancelled';
 
+  // Formatea la fecha de salida en español argentino (mes abreviado + día)
   const formatDate = (dateString) => {
     const options = { month: 'short', day: 'numeric' };
     return new Date(dateString).toLocaleDateString('es-AR', options);
@@ -15,7 +21,7 @@ export default function PostCard({ post, isThird = false }) {
   return (
     <div className={`theme-card rounded-4xl overflow-hidden border-none shadow-xl hover:shadow-2xl transition-all duration-300 relative group flex flex-col h-full ${isThird ? 'hidden lg:flex' : ''}`}>
       <div className="p-7 flex flex-col grow">
-        {/* Type Badge */}
+        {/* Badge de tipo: ofrece o busca */}
         <div className="flex items-center justify-between mb-6">
            <div className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-md ${
               isOffer ? 'bg-brand-500 text-white' : 'bg-orange-500 text-white'
@@ -30,7 +36,7 @@ export default function PostCard({ post, isThird = false }) {
            </div>
         </div>
 
-        {/* Origin / Dest */}
+        {/* Origen y destino */}
         <div className="space-y-3 mb-4">
            <div className="flex items-center gap-4">
               <div className="h-10 w-10 rounded-2xl bg-brand-500/10 flex items-center justify-center text-brand-600">
@@ -53,7 +59,7 @@ export default function PostCard({ post, isThird = false }) {
             </div>
         </div>
 
-        {/* Info Area (Colored) */}
+        {/* Fecha de salida y disponibilidad */}
         <div className="grid grid-cols-2 gap-3 mt-auto">
            <div className="bg-brand-500 text-white p-5 rounded-4xl shadow-lg shadow-brand-500/10 border border-white/5 flex flex-col justify-center">
               <div className="flex items-center gap-1.5 mb-1 opacity-80">
@@ -78,7 +84,7 @@ export default function PostCard({ post, isThird = false }) {
            </div>
         </div>
 
-        {/* Action Button */}
+        {/* CTA: ver detalle o estado agotado/finalizado */}
         <div className="mt-6">
           {isUnavailable ? (
             <div className="flex justify-center items-center py-3.5 w-full rounded-2xl bg-current/5 text-current/40 font-black text-[10px] uppercase tracking-widest border border-current/5">

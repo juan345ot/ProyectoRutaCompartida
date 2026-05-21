@@ -1,3 +1,7 @@
+/**
+ * Límite de error de React: captura fallos en el árbol hijo
+ * y muestra pantalla de recuperación con opción de recargar o volver al inicio.
+ */
 "use client";
 import React from 'react';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
@@ -9,15 +13,18 @@ class ErrorBoundary extends React.Component {
     this.state = { hasError: false, error: null };
   }
 
+  // Actualiza el estado cuando un hijo lanza un error en render
   static getDerivedStateFromError(error) {
     return { hasError: true, error };
   }
 
+  // Registra el error en consola para diagnóstico
   componentDidCatch(error, errorInfo) {
     console.error("Uncaught error:", error, errorInfo);
   }
 
   render() {
+    // Pantalla de fallback cuando hubo un error no controlado
     if (this.state.hasError) {
       return (
         <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">

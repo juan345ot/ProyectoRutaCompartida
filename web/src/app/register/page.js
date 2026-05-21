@@ -1,3 +1,7 @@
+/**
+ * @file Página de registro de usuario.
+ * @description Alta de cuenta local o con Google; exige aceptar términos legales antes de crear la cuenta.
+ */
 "use client";
 import { useState, useContext, useEffect, useCallback } from 'react';
 import { AuthContext } from '@/context/AuthContext';
@@ -9,6 +13,7 @@ import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
 
 export default function RegisterPage() {
+  // --- Estado ---
   const [formData, setFormData] = useState({
       name: '',
       email: '',
@@ -22,6 +27,7 @@ export default function RegisterPage() {
   const { register, loginWithGoogle, isAuthenticated } = useContext(AuthContext);
   const router = useRouter();
 
+  // --- Handlers ---
   const handleGoogleResponse = useCallback(async (response) => {
     setIsLoading(true);
     try {
@@ -49,6 +55,7 @@ export default function RegisterPage() {
     }
   }, [loginWithGoogle]);
 
+  // --- Efectos ---
   useEffect(() => {
     /* global google */
     if (typeof window !== 'undefined' && window.google) {
@@ -108,6 +115,7 @@ export default function RegisterPage() {
     }
   };
 
+  // --- Render principal ---
   return (
     <div className="min-h-screen bg-transparent flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="mx-auto w-full max-w-md">

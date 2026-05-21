@@ -1,3 +1,7 @@
+/**
+ * Menú de navegación desplegable para pantallas móviles.
+ * Muestra enlaces públicos y, si hay sesión, accesos a la cuenta del usuario.
+ */
 "use client";
 import Link from 'next/link';
 import { User, LogOut, Sun, Moon } from 'lucide-react';
@@ -30,6 +34,7 @@ export default function NavMobileMenu({
         <Link href="/#como-funciona" className="px-4 py-3 rounded-xl hover:bg-gray-50 text-gray-700 font-medium">¿Cómo funciona?</Link>
         <Link href="/search" className="px-4 py-3 rounded-xl bg-brand-50 hover:bg-brand-100 text-brand-700 font-bold">Publicaciones</Link>
         
+        {/* Sección de cuenta: solo visible con sesión iniciada */}
         {isAuthenticated ? (
           <>
             <div className="h-px bg-gray-100 my-2"></div>

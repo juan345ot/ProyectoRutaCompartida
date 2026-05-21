@@ -1,3 +1,6 @@
+/**
+ * Tests del componente PostCard: muestra origen, destino y categoría.
+ */
 import { render, screen } from '@testing-library/react';
 import PostCard from '../components/PostCard';
 import '@testing-library/jest-dom';

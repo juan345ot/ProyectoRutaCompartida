@@ -1,5 +1,14 @@
+/**
+ * Controlador de notificaciones in-app.
+ * Consumido por: routes/notificationRoutes.js, bookingController (helper createNotification).
+ */
 const Notification = require('../models/Notification');
 
+/**
+ * @descripcion Lista las últimas notificaciones del usuario autenticado
+ * @ruta GET /api/notifications
+ * @acceso Privado
+ */
 exports.getNotifications = async (req, res) => {
   try {
     const notifications = await Notification.find({ recipient: req.user.id })
@@ -11,6 +20,11 @@ exports.getNotifications = async (req, res) => {
   }
 };
 
+/**
+ * @descripcion Marca todas las notificaciones del usuario como leídas
+ * @ruta PATCH /api/notifications/read-all
+ * @acceso Privado
+ */
 exports.markAsRead = async (req, res) => {
   try {
     await Notification.updateMany({ recipient: req.user.id, read: false }, { read: true });
@@ -20,6 +34,11 @@ exports.markAsRead = async (req, res) => {
   }
 };
 
+/**
+ * @descripcion Marca una notificación específica como leída
+ * @ruta PATCH /api/notifications/:id/read
+ * @acceso Privado
+ */
 exports.markOneAsRead = async (req, res) => {
   try {
     const notif = await Notification.findOneAndUpdate(
@@ -33,7 +52,10 @@ exports.markOneAsRead = async (req, res) => {
   }
 };
 
-// Helper function to create notification (not an export for route)
+/**
+ * Helper interno: crea notificación sin pasar por HTTP.
+ * No es handler de ruta; lo invocan otros controladores.
+ */
 exports.createNotification = async (data) => {
   try {
     await Notification.create(data);

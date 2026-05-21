@@ -1,3 +1,7 @@
+/**
+ * Tests unitarios del middleware protect (JWT y usuario en req).
+ * Mockea User y jsonwebtoken sin levantar el servidor HTTP.
+ */
 const { protect } = require('../../middleware/authMiddleware');
 const jwt = require('jsonwebtoken');
 const User = require('../../models/User');

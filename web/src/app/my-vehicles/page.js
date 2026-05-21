@@ -1,3 +1,7 @@
+/**
+ * @file Gestión de vehículos del usuario.
+ * @description CRUD de autos registrados (requeridos para ofrecer viajes con lugar).
+ */
 "use client";
 import { useState, useContext, useEffect } from 'react';
 import { AuthContext } from '@/context/AuthContext';
@@ -11,10 +15,9 @@ export default function MyVehiclesPage() {
   const { user, isAuthenticated, loading } = useContext(AuthContext);
   const router = useRouter();
 
+  // --- Estado ---
   const [vehicles, setVehicles] = useState([]);
   const [fetching, setFetching] = useState(true);
-  
-  // Modal/Form states
   const [showModal, setShowModal] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [currentId, setCurrentId] = useState(null);
@@ -33,12 +36,14 @@ export default function MyVehiclesPage() {
   
   const [saving, setSaving] = useState(false);
 
+  // --- Efectos ---
   useEffect(() => {
     if (!loading && !isAuthenticated) {
       router.push('/login');
     }
   }, [isAuthenticated, loading, router]);
 
+  // --- Handlers ---
   const fetchVehicles = async () => {
     try {
       setFetching(true);
@@ -153,6 +158,7 @@ export default function MyVehiclesPage() {
 
   if (loading || !isAuthenticated) return null;
 
+  // --- Render principal ---
   return (
     <div className="min-h-screen theme-bg py-10">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -277,7 +283,7 @@ export default function MyVehiclesPage() {
                     {v.extraNotes && (
                       <div className="bg-gray-50/50 dark:bg-gray-800/40 border border-current/5 rounded-xl p-3 text-xs theme-text opacity-75 mt-2 flex gap-2">
                         <FileText className="h-4 w-4 text-gray-400 shrink-0 mt-0.5" />
-                        <p className="italic">"{v.extraNotes}"</p>
+                        <p className="italic">&ldquo;{v.extraNotes}&rdquo;</p>
                       </div>
                     )}
                   </div>

@@ -1,20 +1,29 @@
 "use client";
+/**
+ * @file Contexto de autenticación global.
+ * @description Provee sesión (JWT), login, registro, Google y logout.
+ * Redirige a /login si la API responde 401. Consumido por layout y páginas protegidas.
+ */
 import { createContext, useState, useEffect } from 'react';
 import api from '@/lib/api';
-import axios from 'axios'; // Still needed for interceptors if we apply them globally or to check error types
+import axios from 'axios'; // Interceptor global para detectar sesión expirada
 
+/** Contexto React; valor: { user, loading, login, register, ... } */
 export const AuthContext = createContext();
 
+/** Unifica _id/id del usuario y adjunta el token para el cliente API. */
 function normalizeUser(raw, token) {
   if (!raw) return null;
   const id = raw._id ?? raw.id;
   return { ...raw, _id: id, id, token };
 }
 
+/** Envuelve la app y expone métodos de sesión a los hijos. */
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  /** Borra token local y limpia el estado de usuario. */
   const logout = () => {
     if (typeof window !== 'undefined') {
       localStorage.removeItem('token');
@@ -23,7 +32,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   useEffect(() => {
-    // Setup axios interceptor for 401 redirect
+    // Interceptor: ante 401 redirige a login (sesión expirada)
     const interceptor = axios.interceptors.response.use(
       (response) => response,
       (error) => {
@@ -38,15 +47,15 @@ export const AuthProvider = ({ children }) => {
       }
     );
 
-    // Check for token on load
+    // Al montar: si hay token en localStorage, recupera perfil con /auth/me
     const loadUser = async () => {
       const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
       if (token) {
         try {
           const res = await api.get('/auth/me');
           setUser(normalizeUser(res.data, token));
-        } catch (error) {
-          console.error("Auth Load Error", error);
+        } catch {
+          logout();
         }
       }
       setLoading(false);
@@ -56,6 +65,7 @@ export const AuthProvider = ({ children }) => {
     return () => axios.interceptors.response.eject(interceptor);
   }, []);
 
+  /** Inicio de sesión con email y contraseña; persiste token. */
   const login = async (email, password) => {
     try {
       const res = await api.post('/auth/login', { email, password });
@@ -66,11 +76,11 @@ export const AuthProvider = ({ children }) => {
       }
       return true;
     } catch (error) {
-       console.error("Login Error", error);
        throw error.response?.data?.message || 'Error al iniciar sesión';
     }
   };
 
+  /** Registro de cuenta nueva; deja al usuario logueado. */
   const register = async (userData) => {
     try {
         const res = await api.post('/auth/register', userData);
@@ -81,11 +91,11 @@ export const AuthProvider = ({ children }) => {
         }
         return true;
     } catch (error) {
-        console.error("Register Error", error);
         throw error.response?.data?.message || 'Error al registrarse';
     }
   };
 
+  /** Autenticación con credencial de Google (One Tap / botón). */
   const loginWithGoogle = async (googleData) => {
     try {
       const res = await api.post('/auth/google', googleData);
@@ -96,19 +106,19 @@ export const AuthProvider = ({ children }) => {
       }
       return true;
     } catch (error) {
-      console.error("Google Login Error", error);
       throw error.response?.data?.message || 'Error con Google Login';
     }
   };
 
+  /** Recarga datos del perfil tras editar Mis Datos. */
   const refreshUser = async () => {
     const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
     if (!token) return;
     try {
       const res = await api.get('/auth/me');
       setUser(normalizeUser(res.data, token));
-    } catch (e) {
-      console.error(e);
+    } catch {
+      logout();
     }
   };
 

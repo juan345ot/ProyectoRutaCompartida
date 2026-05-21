@@ -1,3 +1,8 @@
+/**
+ * Tarjeta expandida de publicación para la página de búsqueda.
+ * Incluye mapa estático, ruta, preferencias, datos del autor y
+ * cálculo opcional de distancia/duración vía Google Directions.
+ */
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -7,6 +12,7 @@ import toast from 'react-hot-toast';
 import Image from 'next/image';
 
 export default function SearchPostCard({ post, apiKey }) {
+  // Estado: montaje en cliente e info de ruta calculada por Google Maps
   const [isMounted, setIsMounted] = useState(false);
   const [tripInfo, setTripInfo] = useState({ distance: null, duration: null, arrival: post.arrivalApprox || null });
 
@@ -71,6 +77,7 @@ export default function SearchPostCard({ post, apiKey }) {
     ? `https://maps.googleapis.com/maps/api/staticmap?size=600x400&scale=2&maptype=roadmap&path=color:0x0ea5e9|weight:5|${encodeURIComponent(post.origin)}|${encodeURIComponent(post.destination)}&markers=color:0x10b981|label:O|${encodeURIComponent(post.origin)}&markers=color:0xef4444|label:D|${encodeURIComponent(post.destination)}&key=${apiKey}`
     : null;
 
+  // Envía un reporte simulado de la publicación (mock con confirmación)
   const handleReport = (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -137,7 +144,7 @@ export default function SearchPostCard({ post, apiKey }) {
                        <Cigarette className="h-4 w-4" /> Permite Fumar
                     </div>
                  ) : (
-                    /* Fondo blanco en modo claro, oscuro translúcido en dark */
+                    /* Badge no fumar (estilos distintos en modo claro/oscuro) */
                     <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white dark:bg-white/5 text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-white/10 text-xs font-black uppercase tracking-tight">
                        <Cigarette className="h-4 w-4 opacity-50" /> No Fumar
                     </div>

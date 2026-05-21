@@ -1,10 +1,14 @@
+/**
+ * Contexto de tema claro/oscuro con persistencia en localStorage.
+ * Expone theme y toggleTheme para Navbar, ThemeWrapper y demás componentes.
+ */
 "use client";
 import { createContext, useState, useContext } from 'react';
 
 const ThemeContext = createContext();
 
 export function ThemeProvider({ children }) {
-  // Lazy initializer: only runs once on mount, no useEffect needed
+  // Inicialización perezosa: lee localStorage solo en el primer render en cliente
   const [theme, setTheme] = useState(() => {
     if (typeof window !== 'undefined') {
       return localStorage.getItem('theme') || 'dark';
@@ -12,6 +16,7 @@ export function ThemeProvider({ children }) {
     return 'dark';
   });
 
+  // Alterna entre light y dark y guarda la preferencia en localStorage
   const toggleTheme = () => {
     const newTheme = theme === 'light' ? 'dark' : 'light';
     setTheme(newTheme);
@@ -27,6 +32,7 @@ export function ThemeProvider({ children }) {
   );
 }
 
+// Hook de acceso al contexto; falla si se usa fuera de ThemeProvider
 export function useTheme() {
   const context = useContext(ThemeContext);
   if (context === undefined) {

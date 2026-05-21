@@ -1,3 +1,7 @@
+/**
+ * @file Página de perfil del usuario (Mis Datos).
+ * @description Edición de nombre, teléfono y foto de perfil; requiere sesión activa.
+ */
 "use client";
 import { useState, useContext, useEffect } from 'react';
 import { AuthContext } from '@/context/AuthContext';
@@ -11,10 +15,12 @@ export default function ProfilePage() {
   const { user, isAuthenticated, loading, refreshUser } = useContext(AuthContext);
   const router = useRouter();
   
+  // --- Estado ---
   const [formData, setFormData] = useState({ name: '', phone: '', profileImage: '' });
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState({ text: '', type: '' });
 
+  // --- Efectos ---
   useEffect(() => {
     if (!loading && !isAuthenticated) {
       router.push('/login');
@@ -31,6 +37,7 @@ export default function ProfilePage() {
     }
   }, [user]);
 
+  // --- Handlers ---
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSaving(true);
@@ -51,6 +58,7 @@ export default function ProfilePage() {
 
   if (loading || !isAuthenticated) return null;
 
+  // --- Render principal ---
   return (
     <div className="min-h-screen theme-bg py-10">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">

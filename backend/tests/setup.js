@@ -1,3 +1,7 @@
+/**
+ * Configuración global de Jest: MongoDB en memoria y limpieza entre tests.
+ * Ejecutado automáticamente por jest.config.js (setupFilesAfterEnv).
+ */
 const mongoose = require('mongoose');
 const { MongoMemoryServer } = require('mongodb-memory-server');
 
@@ -24,6 +28,7 @@ afterAll(async () => {
   }
 });
 
+// Vacía todas las colecciones tras cada test para aislar casos
 afterEach(async () => {
   const collections = mongoose.connection.collections;
   for (const key in collections) {

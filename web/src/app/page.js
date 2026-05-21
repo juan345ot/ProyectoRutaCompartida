@@ -1,3 +1,7 @@
+/**
+ * Página de inicio (landing): hero, búsqueda rápida, secciones informativas,
+ * preview de viajes recientes, testimonios, FAQ y formulario de contacto.
+ */
 "use client";
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
@@ -7,9 +11,11 @@ import PostCard from '@/components/PostCard';
 import PostCardSkeleton from '@/components/PostCardSkeleton';
 
 export default function Home() {
+  // Estado: últimas publicaciones destacadas en la home
   const [recentPosts, setRecentPosts] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // Carga las 3 publicaciones más recientes desde la API
   useEffect(() => {
     const fetchPosts = async () => {
       try {
@@ -24,6 +30,7 @@ export default function Home() {
     fetchPosts();
   }, []);
 
+  // Formatea fechas para posibles usos en la sección de viajes (locale es-AR)
   const formatDate = (dateString) => {
     const options = { month: 'short', day: 'numeric' };
     return new Date(dateString).toLocaleDateString('es-AR', options);
@@ -31,9 +38,9 @@ export default function Home() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      {/* Hero Section */}
+      {/* Sección hero principal con CTA de búsqueda y publicar */}
       <section className="relative py-20 lg:py-32 overflow-hidden">
-        {/* Background gradient abstract - Lighter celeste themes */}
+        {/* Fondos decorativos con gradientes */}
         <div className="absolute inset-0 bg-linear-to-br from-brand-400 via-brand-500 to-brand-300"></div>
         <div className="absolute top-0 right-0 -mr-20 -mt-20 w-96 h-96 rounded-full bg-accent-500 blur-3xl opacity-30"></div>
         <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-72 h-72 rounded-full bg-brand-200 blur-3xl opacity-40"></div>
@@ -57,7 +64,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Quick Search Widget Area (Glassmorphism overlap) */}
+      {/* Widget de búsqueda rápida (solapa el hero) */}
       <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 -mt-8 relative z-10 w-full">
         <div className="glass-card rounded-2xl p-6 md:p-8 flex flex-col md:flex-row gap-4 items-end shadow-2xl shadow-brand-900/10">
           <div className="w-full relative">
@@ -80,7 +87,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* What is Ruta Compartida Section */}
+      {/* ¿Qué es Ruta Compartida? */}
       <section id="que-es" className="py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="theme-card rounded-3xl p-8 md:p-12">
@@ -137,7 +144,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Value Prop Section */}
+      {/* ¿Cómo funciona? — propuesta de valor */}
       <section id="como-funciona" className="py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
@@ -173,9 +180,9 @@ export default function Home() {
           </div>
         </div>
       </section>
-      {/* Recent Posts Section (Preview) */}
+      {/* Vista previa de viajes recientes */}
       <section className="py-20 relative overflow-hidden">
-        {/* Abstract background for color */}
+        {/* Fondo decorativo */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-brand-500/5 blur-3xl rounded-full"></div>
         
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
@@ -193,6 +200,7 @@ export default function Home() {
                </Link>
             </div>
 
+          {/* Grilla de tarjetas: skeleton, vacío o publicaciones */}
           <div className="grid md:grid-cols-3 gap-8">
             {loading ? (
                Array.from({ length: 3 }).map((_, i) => <PostCardSkeleton key={`skeleton-${i}`} isThird={i === 2} />)
@@ -216,7 +224,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Testimonials Section */}
+      {/* Testimonios de la comunidad */}
       <section className="py-20 relative overflow-hidden">
         <div className="absolute top-0 left-0 w-64 h-64 bg-brand-200 rounded-full blur-3xl opacity-30 -translate-x-1/2 -translate-y-1/2"></div>
         <div className="absolute bottom-0 right-0 w-80 h-80 bg-accent-200 rounded-full blur-3xl opacity-30 translate-x-1/3 translate-y-1/3"></div>
@@ -229,7 +237,7 @@ export default function Home() {
             </div>
 
           <div className="grid md:grid-cols-3 gap-8">
-             {/* Review 1 */}
+             {/* Testimonio 1 */}
              <div className="theme-card p-8 rounded-3xl shadow-xl relative">
                 <Quote className="absolute top-6 right-6 h-8 w-8 opacity-20" />
                 <div className="flex gap-1 mb-4 text-yellow-400">
@@ -244,7 +252,7 @@ export default function Home() {
                    </div>
                 </div>
              </div>
-             {/* Review 2 */}
+             {/* Testimonio 2 */}
              <div className="theme-card p-8 rounded-3xl shadow-xl relative md:-translate-y-4">
                 <Quote className="absolute top-6 right-6 h-8 w-8 opacity-20" />
                 <div className="flex gap-1 mb-4 text-yellow-400">
@@ -259,7 +267,7 @@ export default function Home() {
                    </div>
                 </div>
              </div>
-             {/* Review 3 */}
+             {/* Testimonio 3 */}
              <div className="theme-card p-8 rounded-3xl shadow-xl relative">
                 <Quote className="absolute top-6 right-6 h-8 w-8 opacity-20" />
                 <div className="flex gap-1 mb-4 text-yellow-400">
@@ -279,7 +287,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* FAQ Section */}
+      {/* Preguntas frecuentes */}
       <section id="faq" className="py-20">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="theme-card rounded-4xl p-8 md:p-12">
@@ -289,7 +297,7 @@ export default function Home() {
             </div>
 
           <div className="space-y-4">
-             {/* FAQ Item 1 */}
+             {/* Pregunta 1 */}
              <details className="group theme-card rounded-2xl [&_summary::-webkit-details-marker]:hidden">
                 <summary className="flex cursor-pointer items-center justify-between gap-1.5 p-6">
                   <h2 className="font-medium font-outfit text-lg">¿Es seguro viajar con Ruta Compartida?</h2>
@@ -303,7 +311,7 @@ export default function Home() {
                 </div>
              </details>
 
-             {/* FAQ Item 2 */}
+             {/* Pregunta 2 */}
              <details className="group theme-card rounded-2xl [&_summary::-webkit-details-marker]:hidden">
                 <summary className="flex cursor-pointer items-center justify-between gap-1.5 p-6">
                   <h2 className="font-medium font-outfit text-lg">¿Cómo se realiza el pago?</h2>
@@ -317,7 +325,7 @@ export default function Home() {
                 </div>
              </details>
 
-             {/* FAQ Item 3 */}
+             {/* Pregunta 3 */}
              <details className="group theme-card rounded-2xl [&_summary::-webkit-details-marker]:hidden">
                 <summary className="flex cursor-pointer items-center justify-between gap-1.5 p-6">
                   <h2 className="font-medium font-outfit text-lg">¿Cualquiera puede publicar un viaje?</h2>
@@ -335,7 +343,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Support / Contact Section */}
+      {/* Formulario de contacto y soporte */}
       <section id="contacto" className="py-20 relative">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
            <div className="bg-brand-900 rounded-3xl p-8 md:p-12 shadow-2xl overflow-hidden relative">

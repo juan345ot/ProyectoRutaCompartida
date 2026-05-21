@@ -1,3 +1,7 @@
+/**
+ * @file Términos de servicio completos.
+ * @description Documento legal estático con metadata SEO para la plataforma.
+ */
 import Link from 'next/link';
 import { Route, Shield, ArrowLeft } from 'lucide-react';
 
@@ -7,6 +11,7 @@ export const metadata = {
 };
 
 export default function TerminosServicioPage() {
+  // --- Render principal ---
   return (
     <div className="min-h-screen bg-gray-50 py-12">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">

@@ -1,3 +1,7 @@
+/**
+ * @file Página de inicio de sesión.
+ * @description Autenticación con email/contraseña o Google; redirige al tablón si ya hay sesión activa.
+ */
 "use client";
 import { useState, useContext, useEffect, useCallback } from 'react';
 import { AuthContext } from '@/context/AuthContext';
@@ -9,6 +13,7 @@ import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
 
 export default function LoginPage() {
+  // --- Estado ---
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -16,6 +21,7 @@ export default function LoginPage() {
   const { login, loginWithGoogle, isAuthenticated } = useContext(AuthContext);
   const router = useRouter();
 
+  // --- Handlers ---
   const handleGoogleResponse = useCallback(async (response) => {
     setIsLoading(true);
     try {
@@ -43,6 +49,7 @@ export default function LoginPage() {
     }
   }, [loginWithGoogle]);
 
+  // --- Efectos ---
   useEffect(() => {
     /* global google */
     if (typeof window !== 'undefined' && window.google) {
@@ -83,6 +90,7 @@ export default function LoginPage() {
     }
   };
 
+  // --- Render principal ---
   return (
     <div className="min-h-screen bg-transparent flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="mx-auto w-full max-w-md">

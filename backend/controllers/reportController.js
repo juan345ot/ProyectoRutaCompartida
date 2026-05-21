@@ -1,5 +1,14 @@
+/**
+ * Controlador de denuncias de usuarios o publicaciones.
+ * Consumido por: routes/reportRoutes.js.
+ */
 const Report = require('../models/Report');
 
+/**
+ * @descripcion Registra un reporte contra un usuario y/o publicación
+ * @ruta POST /api/reports
+ * @acceso Privado
+ */
 const createReport = async (req, res) => {
   try {
     const { reportedUserId, postId, reason, details } = req.body;

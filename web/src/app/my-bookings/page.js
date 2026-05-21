@@ -1,3 +1,7 @@
+/**
+ * @file Solicitudes de interés enviadas por el usuario.
+ * @description Seguimiento del estado (pendiente, aprobado, rechazado) y acceso al itinerario.
+ */
 "use client";
 import { useState, useEffect, useContext } from "react";
 import { AuthContext } from "@/context/AuthContext";
@@ -8,15 +12,19 @@ import toast from "react-hot-toast";
 
 export default function MyBookingsPage() {
   const { isAuthenticated, loading } = useContext(AuthContext);
+
+  // --- Estado ---
   const [bookings, setBookings] = useState([]);
   const [isFetching, setIsFetching] = useState(true);
 
+  // --- Efectos ---
   useEffect(() => {
     if (!loading && !isAuthenticated) {
       window.location.href = "/login?redirect=my-bookings";
     }
   }, [isAuthenticated, loading]);
 
+  // --- Handlers ---
   const fetchBookings = async () => {
     try {
       const res = await api.get("/bookings/my-requests");
@@ -43,6 +51,7 @@ export default function MyBookingsPage() {
     );
   }
 
+  /** Devuelve el badge visual según el estado de la solicitud. */
   const getStatusBadge = (status) => {
     switch (status) {
       case "approved":
@@ -66,6 +75,7 @@ export default function MyBookingsPage() {
     }
   };
 
+  // --- Render principal ---
   return (
     <div className="max-w-5xl mx-auto px-4 py-12">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-10">

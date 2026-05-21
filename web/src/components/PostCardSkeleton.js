@@ -1,3 +1,7 @@
+/**
+ * Placeholder animado mientras carga PostCard en la home.
+ * Replica la estructura visual de la tarjeta real.
+ */
 export default function PostCardSkeleton({ isThird = false }) {
   const outerClass = `theme-card border text-left rounded-3xl p-6 relative overflow-hidden ${isThird ? 'hidden md:block' : ''}`;
   return (

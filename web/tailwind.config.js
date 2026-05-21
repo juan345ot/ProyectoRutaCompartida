@@ -1,5 +1,10 @@
+/**
+ * Tema y rutas de contenido para Tailwind CSS.
+ * Define paleta brand (teal) y accent (naranja) de Ruta Compartida.
+ */
 /** @type {import('tailwindcss').Config} */
 module.exports = {
+  // Archivos donde Tailwind busca clases utilizadas
   content: [
     "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
@@ -8,6 +13,7 @@ module.exports = {
   theme: {
     extend: {
       colors: {
+        // Verde azulado — identidad principal
         brand: {
           50: '#f0fdfa',
           100: '#ccfbf1',
@@ -20,6 +26,7 @@ module.exports = {
           800: '#115e59',
           900: '#134e4a',
         },
+        // Naranja — botones de acción y acentos
         accent: {
           50: '#fff7ed',
           100: '#ffedd5',

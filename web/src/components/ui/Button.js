@@ -1,3 +1,7 @@
+/**
+ * Botón reutilizable con variantes de color, tamaños e ícono opcional.
+ * Soporta estado de carga y deshabilitado.
+ */
 import React from 'react';
 import { Loader2 } from 'lucide-react';
 
@@ -11,6 +15,7 @@ export default function Button({
   disabled,
   ...props 
 }) {
+  // Mapas de estilos por variante y tamaño
   const variants = {
     primary: 'bg-brand-500 text-white hover:bg-brand-600 shadow-brand-500/20',
     secondary: 'bg-accent-500 text-white hover:bg-accent-600 shadow-accent-500/20',

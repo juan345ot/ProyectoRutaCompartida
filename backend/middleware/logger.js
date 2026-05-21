@@ -1,3 +1,8 @@
+/**
+ * Logger centralizado con Winston y rotación diaria de archivos.
+ * Escribe en backend/logs/ y consola en desarrollo.
+ * Consumido por: server.js, controladores, cronJobs, authMiddleware.
+ */
 const winston = require('winston');
 require('winston-daily-rotate-file');
 const path = require('path');
@@ -30,7 +35,7 @@ const logger = winston.createLogger({
   ]
 });
 
-// If we're not in production then log to the `console`
+// En desarrollo también imprime en consola con colores
 if (process.env.NODE_ENV !== 'production') {
   logger.add(new winston.transports.Console({
     format: winston.format.combine(

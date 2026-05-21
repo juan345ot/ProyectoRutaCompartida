@@ -1,3 +1,7 @@
+/**
+ * Controlador de calificaciones entre conductor y pasajero en viajes completados.
+ * Consumido por: routes/reviewRoutes.js; usa isApprovedParticipant de postController.
+ */
 const Review = require('../models/Review');
 const User = require('../models/User');
 const Post = require('../models/Post');
@@ -7,7 +11,7 @@ function uid(userId) {
   return userId?.toString ? userId.toString() : String(userId);
 }
 
-/** Para offer: autor = conductor. Para request: autor = pasajero; aprobados = conductores */
+/** En offer el autor es conductor; en request los aprobados en interestRequests son conductores. */
 function getDriverIds(post) {
   const author = post.author._id ? post.author._id : post.author;
   const auid = uid(author);
@@ -19,6 +23,7 @@ function getDriverIds(post) {
   );
 }
 
+/** En request el autor es pasajero; en offer los aprobados son pasajeros. */
 function getPassengerIds(post) {
   const author = post.author._id ? post.author._id : post.author;
   const auid = uid(author);
@@ -30,6 +35,7 @@ function getPassengerIds(post) {
   );
 }
 
+/** Verifica que dos usuarios sean conductor y pasajero del mismo viaje. */
 function areTripCounterparts(post, a, b) {
   const drivers = getDriverIds(post);
   const passengers = getPassengerIds(post);
@@ -42,9 +48,11 @@ function areTripCounterparts(post, a, b) {
   return (aDriver && bPass) || (aPass && bDriver);
 }
 
-// @desc    Create new review (solo viajes completados, conductor ↔ pasajero)
-// @route   POST /api/reviews
-// @access  Private
+/**
+ * @descripcion Crea una reseña y recalcula promedio del destinatario
+ * @ruta POST /api/reviews
+ * @acceso Privado (participantes del viaje completado, roles opuestos)
+ */
 const createReview = async (req, res) => {
   try {
     const { rating, comment, recipientId, postId } = req.body;
@@ -110,9 +118,11 @@ const createReview = async (req, res) => {
   }
 };
 
-// @desc    Reviews recibidas y emitidas del usuario logueado
-// @route   GET /api/reviews/me
-// @access  Private
+/**
+ * @descripcion Devuelve reseñas recibidas y emitidas por el usuario logueado
+ * @ruta GET /api/reviews/me
+ * @acceso Privado
+ */
 const getMyReviews = async (req, res) => {
   try {
     const me = req.user._id || req.user.id;
@@ -133,9 +143,11 @@ const getMyReviews = async (req, res) => {
   }
 };
 
-// @desc    Get reviews for a specific user (público)
-// @route   GET /api/reviews/user/:userId
-// @access  Public
+/**
+ * @descripcion Lista reseñas públicas recibidas por un usuario
+ * @ruta GET /api/reviews/user/:userId
+ * @acceso Público
+ */
 const getUserReviews = async (req, res) => {
   try {
     const reviews = await Review.find({ recipient: req.params.userId })

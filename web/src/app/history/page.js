@@ -1,3 +1,7 @@
+/**
+ * @file Historial de viajes completados (Mis Rutas Compartidas).
+ * @description Muestra viajes ofrecidos y unidos; permite calificar a las contrapartes desde un modal.
+ */
 "use client";
 import { useState, useContext, useEffect, useCallback } from "react";
 import { AuthContext } from "@/context/AuthContext";
@@ -7,6 +11,12 @@ import api from "@/lib/api";
 import Link from "next/link";
 import toast from "react-hot-toast";
 
+/**
+ * Obtiene los usuarios con quien el usuario actual puede intercambiar una calificación en un viaje.
+ * @param {object} post - Publicación completada con solicitudes de interés.
+ * @param {string} myId - ID del usuario autenticado.
+ * @returns {Array<{_id: string, name: string}>} Contrapartes elegibles para reseña.
+ */
 function counterpartsForPost(post, myId) {
   const me = String(myId);
   const authorId = post.author?._id ? String(post.author._id) : String(post.author);
@@ -40,6 +50,7 @@ export default function HistoryPage() {
   const router = useRouter();
   const myId = user?._id || user?.id;
 
+  // --- Estado ---
   const [offered, setOffered] = useState([]);
   const [joined, setJoined] = useState([]);
   const [tab, setTab] = useState("offered");
@@ -50,6 +61,7 @@ export default function HistoryPage() {
   const [comment, setComment] = useState("");
   const [submittingReview, setSubmittingReview] = useState(false);
 
+  // --- Handlers ---
   const load = useCallback(async () => {
     try {
       const [histRes, revRes] = await Promise.all([
@@ -66,6 +78,7 @@ export default function HistoryPage() {
     }
   }, []);
 
+  // --- Efectos ---
   useEffect(() => {
     if (!loading && !isAuthenticated) router.push("/login");
   }, [isAuthenticated, loading, router]);
@@ -110,6 +123,7 @@ export default function HistoryPage() {
   const tabLabelOffered = "Lo que ofrecí / conducí";
   const tabLabelJoined = "Lo que busqué / en lo que viajé";
 
+  /** Formatea la fecha de salida del viaje para mostrarla en la tarjeta. */
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString("es-AR", {
       weekday: "long",
@@ -119,6 +133,7 @@ export default function HistoryPage() {
     });
   };
 
+  // --- Render principal ---
   return (
     <div className="min-h-screen bg-transparent py-10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

@@ -1,7 +1,16 @@
+/**
+ * Tareas programadas en proceso (archivado de viajes vencidos).
+ * Se inician tras conectar MongoDB en server.js.
+ * Consumido por: server.js (startCronJobs).
+ */
 const Post = require('../models/Post');
 const Booking = require('../models/Booking');
 const logger = require('../middleware/logger');
 
+/**
+ * Marca como completed los viajes activos cuya fecha ya pasó
+ * y no tienen reservas aprobadas (evita cerrar viajes con pasajeros confirmados).
+ */
 const archiveExpiredPosts = async () => {
   try {
     const now = new Date();
@@ -40,6 +49,7 @@ const archiveExpiredPosts = async () => {
   }
 };
 
+/** Arranca el job al inicio (delay 5s) y cada 15 minutos. */
 const startCronJobs = () => {
   // Ejecutar inmediatamente al iniciar y luego cada 15 minutos (900,000 ms)
   setTimeout(archiveExpiredPosts, 5000); // 5 seg delay inicial

@@ -1,3 +1,7 @@
+/**
+ * Pie de página global con enlaces de ayuda, legales y redes sociales.
+ * Se muestra en todas las páginas a través de ClientLayout.
+ */
 import Link from 'next/link';
 import { Instagram } from 'lucide-react';
 import Logo from './Logo';
@@ -6,6 +10,7 @@ export default function Footer() {
   return (
     <footer className="bg-brand-600 border-t border-brand-700 text-brand-50 mt-auto">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
+        {/* Marca y descripción breve de la plataforma */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 md:gap-12">
           <div className="md:col-span-2">
              <div className="flex items-center gap-3 mb-6 group cursor-pointer w-fit">
@@ -17,6 +22,7 @@ export default function Footer() {
              </p>
           </div>
           
+          {/* Enlaces de ayuda y soporte */}
           <div>
             <h3 className="text-white font-bold mb-4">Ayuda</h3>
             <ul className="space-y-3 text-sm">
@@ -26,6 +32,7 @@ export default function Footer() {
             </ul>
           </div>
 
+          {/* Documentos legales y normas de la comunidad */}
           <div>
             <h3 className="text-white font-bold mb-4">Legal</h3>
             <ul className="space-y-3 text-sm">
@@ -36,6 +43,7 @@ export default function Footer() {
           </div>
         </div>
 
+        {/* Copyright y redes sociales */}
         <div className="mt-12 pt-8 border-t border-brand-500/50 flex flex-col md:flex-row justify-between items-center gap-6">
           <p className="text-center md:text-left text-sm text-brand-100">
             &copy; {new Date().getFullYear()} Ruta Compartida. Todos los derechos reservados.

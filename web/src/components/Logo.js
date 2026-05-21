@@ -1,3 +1,7 @@
+/**
+ * Logo SVG de Ruta Compartida: dos puntos unidos por una curva.
+ * Se reutiliza en Navbar, Footer y favicon (misma identidad visual).
+ */
 import React from 'react';
 
 /**

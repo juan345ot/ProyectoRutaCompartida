@@ -1,3 +1,8 @@
+/**
+ * Autenticación opcional: no bloquea si falta o es inválido el token.
+ * Permite personalizar respuestas (ej. ocultar contacto del autor del post).
+ * Consumido por: postRoutes (GET /api/posts/:id).
+ */
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 

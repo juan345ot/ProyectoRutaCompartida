@@ -1,3 +1,7 @@
+/**
+ * @file Crear o editar una publicación de viaje.
+ * @description Formulario de oferta/solicitud con vehículos, ruta (Google Places) y validaciones de conductor.
+ */
 "use client";
 import { useState, useContext, useEffect, useRef, Suspense } from "react";
 import { MapPin, Calendar, Package, Users, Info, Car, Shield } from "lucide-react";
@@ -10,13 +14,20 @@ import Image from "next/image";
 
 const PLACEHOLDER_HINTS = ["via.placeholder", "ui-avatars.com"];
 
+/**
+ * Indica si el usuario tiene una foto de perfil real (no avatar genérico).
+ * @param {object|null} u - Usuario con campo profileImage.
+ * @returns {boolean}
+ */
 function userHasProfilePhoto(u) {
   if (!u?.profileImage) return false;
   const s = String(u.profileImage).toLowerCase();
   return !PLACEHOLDER_HINTS.some((h) => s.includes(h));
 }
 
+/** Formulario principal de publicación (envuelto en Suspense por useSearchParams). */
 function PublishContent() {
+  // --- Estado ---
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editId, setEditId] = useState(null);
@@ -49,6 +60,7 @@ function PublishContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
+  // --- Efectos ---
   useEffect(() => {
     if (!loading && !isAuthenticated) {
       router.push("/login?redirect=publish");
@@ -86,6 +98,7 @@ function PublishContent() {
     }
   }, [searchParams]);
 
+  // --- Handlers ---
   const fetchEditData = async (id) => {
      try {
         const { data } = await api.get(`/posts/${id}`);
@@ -277,6 +290,7 @@ function PublishContent() {
     );
   }
 
+  // --- Render principal ---
   return (
     <div className="min-h-screen bg-transparent py-12">
       <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -475,7 +489,7 @@ function PublishContent() {
                               </p>
                               {activeVehicle.extraNotes && (
                                 <p className="text-[10px] theme-text opacity-70 italic mt-2 line-clamp-2">
-                                  "{activeVehicle.extraNotes}"
+                                  &ldquo;{activeVehicle.extraNotes}&rdquo;
                                 </p>
                               )}
                             </div>
@@ -716,6 +730,7 @@ function PublishContent() {
   );
 }
 
+/** Punto de entrada: carga el formulario dentro de Suspense (parámetro ?edit=). */
 export default function PublishPage() {
   return (
     <Suspense fallback={

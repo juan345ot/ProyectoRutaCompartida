@@ -1,5 +1,11 @@
+/**
+ * Modelo de publicación de viaje (oferta u búsqueda, pasajero o paquete).
+ * Incluye sub-esquemas embebidos para solicitudes de interés y datos de vehículo.
+ * Consumido por: postController, bookingController, userController, cronJobs, reviewController.
+ */
 const mongoose = require('mongoose');
 
+/** Solicitud de interés en un viaje (legacy + sincronización con Booking) */
 const interestRequestSchema = new mongoose.Schema(
   {
     user: {
@@ -23,6 +29,7 @@ const interestRequestSchema = new mongoose.Schema(
   { _id: false }
 );
 
+/** Datos de vehículo embebidos en la oferta (alternativa a ref Vehicle) */
 const vehicleSchema = new mongoose.Schema(
   {
     brand: { type: String, trim: true },       // Marca: Ford, Toyota...
@@ -40,11 +47,13 @@ const vehicleSchema = new mongoose.Schema(
 
 const postSchema = new mongoose.Schema(
   {
+    // offer = ofrezco lugar | request = busco lugar
     type: {
       type: String,
       enum: ['offer', 'request'],
       required: true,
     },
+    // passenger = personas | package = envíos
     category: {
       type: String,
       enum: ['passenger', 'package'],
@@ -67,6 +76,7 @@ const postSchema = new mongoose.Schema(
       type: String,
       maxlength: 120,
     },
+    // Texto legible de capacidad (ej. "3 lugares", "50 kg")
     capacity: {
       type: String,
       required: true,
@@ -96,6 +106,7 @@ const postSchema = new mongoose.Schema(
       enum: ['active', 'completed', 'cancelled'],
       default: 'active',
     },
+    // ObjectId de Vehicle o subdocumento embebido (Mixed)
     vehicle: mongoose.Schema.Types.Mixed,
     interestRequests: {
       type: [interestRequestSchema],
@@ -114,6 +125,7 @@ const postSchema = new mongoose.Schema(
   }
 );
 
+// Búsqueda por texto en listados
 postSchema.index({ origin: 'text', destination: 'text', description: 'text' });
 postSchema.index({ author: 1, status: 1 });
 

@@ -1,9 +1,15 @@
+/**
+ * Controlador de perfil, publicaciones propias, historial y panel admin.
+ * Consumido por: routes/userRoutes.js.
+ */
 const User = require('../models/User');
 const Post = require('../models/Post');
 
-// @desc    Get current user's posts
-// @route   GET /api/users/me/posts
-// @access  Private
+/**
+ * @descripcion Devuelve las publicaciones del usuario con solicitudes de interés pobladas
+ * @ruta GET /api/users/me/posts
+ * @acceso Privado
+ */
 const getMyPosts = async (req, res) => {
   try {
     const posts = await Post.find({ author: req.user.id })
@@ -16,7 +22,9 @@ const getMyPosts = async (req, res) => {
 };
 
 /**
- * Viajes completados separados: como conductor (ofreciste / manejaste) o como pasajero (buscaste / ibas de copilotaje)
+ * @descripcion Historial de viajes completados separados en ofrecidos (conductor) y unidos (pasajero)
+ * @ruta GET /api/users/me/history
+ * @acceso Privado
  */
 const getMyHistory = async (req, res) => {
   try {
@@ -43,6 +51,7 @@ const getMyHistory = async (req, res) => {
         (r) => r.user && r.user._id?.toString() === uid && r.status === 'approved'
       );
 
+      // offer: autor = conductor; request: autor = pasajero que busca lugar
       if (plain.type === 'offer') {
         if (authorId === uid) offered.push(plain);
         else if (iApproved) joined.push(plain);
@@ -60,7 +69,9 @@ const getMyHistory = async (req, res) => {
 };
 
 /**
- * Solicitudes pendientes para publicaciones donde soy autor (aviso al conductor)
+ * @descripcion Lista solicitudes de interés pendientes en viajes donde soy autor
+ * @ruta GET /api/users/me/trip-requests
+ * @acceso Privado
  */
 const getMyPendingTripRequests = async (req, res) => {
   try {
@@ -94,9 +105,11 @@ const getMyPendingTripRequests = async (req, res) => {
   }
 };
 
-// @desc    Get admin statistics
-// @route   GET /api/users/admin/stats
-// @access  Private/Admin
+/**
+ * @descripcion Métricas agregadas de usuarios y publicaciones para administración
+ * @ruta GET /api/users/admin/stats
+ * @acceso Privado (rol admin o email de desarrollo)
+ */
 const getAdminStats = async (req, res) => {
   try {
     // Verificar si el usuario es administrador
@@ -125,9 +138,11 @@ const getAdminStats = async (req, res) => {
   }
 };
 
-// @desc    Update user profile
-// @route   PUT /api/users/me
-// @access  Private
+/**
+ * @descripcion Actualiza nombre, teléfono e imagen de perfil del usuario logueado
+ * @ruta PUT /api/users/me
+ * @acceso Privado
+ */
 const updateProfile = async (req, res) => {
   try {
     const { name, phone, profileImage } = req.body;

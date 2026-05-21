@@ -1,17 +1,23 @@
+/**
+ * Controlador de autenticación: registro, login, sesión y Google OAuth.
+ * Consumido por: routes/authRoutes.js.
+ */
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const User = require('../models/User');
 
-// Generate JWT
+/** Genera JWT de sesión con expiración de 30 días. */
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
     expiresIn: '30d',
   });
 };
 
-// @desc    Register new user
-// @route   POST /api/auth/register
-// @access  Public
+/**
+ * @descripcion Registra un usuario nuevo con contraseña hasheada
+ * @ruta POST /api/auth/register
+ * @acceso Público
+ */
 const registerUser = async (req, res) => {
   try {
     const { name, email, password, phone } = req.body;
@@ -58,9 +64,11 @@ const registerUser = async (req, res) => {
   }
 };
 
-// @desc    Authenticate a user
-// @route   POST /api/auth/login
-// @access  Public
+/**
+ * @descripcion Inicia sesión con email y contraseña
+ * @ruta POST /api/auth/login
+ * @acceso Público
+ */
 const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -88,16 +96,20 @@ const loginUser = async (req, res) => {
   }
 };
 
-// @desc    Get user data
-// @route   GET /api/auth/me
-// @access  Private
+/**
+ * @descripcion Devuelve el usuario autenticado actual
+ * @ruta GET /api/auth/me
+ * @acceso Privado (Bearer token)
+ */
 const getMe = async (req, res) => {
   res.status(200).json(req.user);
 };
 
-// @desc    Google SignIn/Up (Mock implementation for now)
-// @route   POST /api/auth/google
-// @access  Public
+/**
+ * @descripcion Login o registro con credenciales de Google (crea usuario si no existe)
+ * @ruta POST /api/auth/google
+ * @acceso Público
+ */
 const googleAuth = async (req, res) => {
   try {
     const { email, name, googleId, profileImage } = req.body;

@@ -1,3 +1,7 @@
+/**
+ * Layout de cliente que envuelve toda la app con providers,
+ * navbar, footer, toasts y manejo de errores. Registra el service worker.
+ */
 "use client";
 import { useEffect } from "react";
 import { Toaster } from "react-hot-toast";
@@ -9,6 +13,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
 export default function ClientLayout({ children }) {
+  // Registra el service worker para soporte PWA offline
   useEffect(() => {
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {

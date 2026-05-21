@@ -1,3 +1,7 @@
+/**
+ * Placeholder animado para SearchPostCard en la página de búsqueda.
+ * Layout de dos columnas (ruta + panel lateral) en estado de carga.
+ */
 export default function SearchPostCardSkeleton() {
   return (
     <div className="theme-card rounded-3xl p-0 relative overflow-hidden">

@@ -1,10 +1,18 @@
+/**
+ * Controlador de reservas ("Me interesa"): CRUD y sincronización con interestRequests.
+ * Consumido por: routes/bookingRoutes.js.
+ */
 const Booking = require('../models/Booking');
+const logger = require('../middleware/logger');
 const Post = require('../models/Post');
 const { createNotification } = require('./notificationController');
+const { syncInterestFromBooking } = require('../utils/bookingSync');
 
-// @desc    Crear una nueva solicitud de rserva (Me interesa)
-// @route   POST /api/bookings
-// @access  Private
+/**
+ * @descripcion Crea una solicitud de reserva sobre un viaje ajeno
+ * @ruta POST /api/bookings
+ * @acceso Privado
+ */
 const createBooking = async (req, res) => {
   try {
     const { post: postId, type, seatsRequested, weightRequested, dimensionsRequested, message } = req.body;
@@ -37,6 +45,8 @@ const createBooking = async (req, res) => {
     });
 
     // Notify post owner
+    await syncInterestFromBooking(postId, req.user.id, 'pending');
+
     await createNotification({
       recipient: postObj.author,
       sender: req.user.id,
@@ -52,9 +62,11 @@ const createBooking = async (req, res) => {
   }
 };
 
-// @desc    Obtener solicitudes hechas POR el usuario logueado (Mis Solicitudes)
-// @route   GET /api/bookings/my-requests
-// @access  Private
+/**
+ * @descripcion Lista solicitudes enviadas por el usuario logueado
+ * @ruta GET /api/bookings/my-requests
+ * @acceso Privado
+ */
 const getMyRequests = async (req, res) => {
   try {
     const bookings = await Booking.find({ requester: req.user.id })
@@ -66,14 +78,16 @@ const getMyRequests = async (req, res) => {
     const safe = bookings.filter(b => b.post != null);
     res.status(200).json(safe);
   } catch (error) {
-    console.error('Error in getMyRequests:', error);
+    logger.error('Error in getMyRequests:', error);
     res.status(500).json({ message: error.message });
   }
 };
 
-// @desc    Obtener solicitudes hechas PARA los posts del usuario logueado (Mis Pasajeros/Paquetes)
-// @route   GET /api/bookings/my-offers
-// @access  Private
+/**
+ * @descripcion Lista solicitudes recibidas en los viajes publicados por el usuario
+ * @ruta GET /api/bookings/my-offers
+ * @acceso Privado
+ */
 const getMyOffers = async (req, res) => {
   try {
     const userPosts = await Post.find({ author: req.user.id }).select('_id').lean();
@@ -93,14 +107,16 @@ const getMyOffers = async (req, res) => {
     const safe = bookings.filter(b => b.post != null);
     res.status(200).json(safe);
   } catch (error) {
-    console.error('Error in getMyOffers:', error);
+    logger.error('Error in getMyOffers:', error);
     res.status(500).json({ message: error.message });
   }
 };
 
-// @desc    Actualizar estado de reserva (Aceptar/Rechazar)
-// @route   PUT /api/bookings/:id
-// @access  Private
+/**
+ * @descripcion Aprueba o rechaza una reserva; ajusta asientos/peso y notifica al solicitante
+ * @ruta PUT|PATCH /api/bookings/:id
+ * @acceso Privado (solo autor del viaje)
+ */
 const updateBookingStatus = async (req, res) => {
   try {
     const { status } = req.body; // 'approved' o 'rejected'
@@ -147,6 +163,12 @@ const updateBookingStatus = async (req, res) => {
 
     booking.status = status;
     await booking.save();
+
+    await syncInterestFromBooking(
+      postObj._id,
+      booking.requester._id || booking.requester,
+      status
+    );
     
     // Notify requester
     await createNotification({

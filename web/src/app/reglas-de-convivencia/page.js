@@ -1,3 +1,7 @@
+/**
+ * @file Reglas de convivencia de la comunidad.
+ * @description Normas de comportamiento esperado y conductas prohibidas en viajes compartidos.
+ */
 import Link from 'next/link';
 import { Route, Heart, ArrowLeft, CheckCircle, XCircle } from 'lucide-react';
 
@@ -7,6 +11,7 @@ export const metadata = {
 };
 
 export default function ReglasConvivenciaPage() {
+  // --- Render principal ---
   return (
     <div className="min-h-screen bg-gray-50 py-12">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">

@@ -1,3 +1,17 @@
+/**
+ * Rutas de publicaciones de viaje.
+ * Monta en server.js bajo /api/posts.
+ *
+ * Endpoints:
+ *   GET    /              — listado público con filtros
+ *   POST   /              — crear publicación (protegido + validación)
+ *   GET    /:id           — detalle (optionalAuth)
+ *   PATCH  /:id           — editar (autor)
+ *   DELETE /:id           — eliminar (autor)
+ *   POST   /:id/interest  — expresar interés
+ *   PATCH  /:id/interest/:userId — aprobar/rechazar interés
+ *   PATCH  /:id/complete  — marcar viaje completado
+ */
 const express = require('express');
 const router = express.Router();
 const { check, validationResult } = require('express-validator');

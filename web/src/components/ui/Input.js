@@ -1,3 +1,7 @@
+/**
+ * Campo de texto con label, ícono opcional y mensaje de error.
+ * Estilos consistentes con el diseño de formularios de la app.
+ */
 import React from 'react';
 
 export default function Input({ 

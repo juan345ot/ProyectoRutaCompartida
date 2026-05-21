@@ -1,3 +1,8 @@
+/**
+ * Barra de navegación principal fija en la parte superior.
+ * Gestiona menú desktop/móvil, tema claro/oscuro, sesión del usuario
+ * y acceso a publicaciones, notificaciones y perfil.
+ */
 "use client";
 import Link from 'next/link';
 import { useState, useContext, useEffect, useRef } from 'react';
@@ -11,6 +16,7 @@ import NotificationBell from './NotificationBell';
 import Logo from './Logo';
 
 export default function Navbar() {
+  // Estado local: menú móvil, dropdown de perfil y montaje para evitar hydration mismatch del ícono de tema
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const { user, logout, isAuthenticated } = useContext(AuthContext);
@@ -19,12 +25,13 @@ export default function Navbar() {
   const pathname = usePathname();
   const [mounted, setMounted] = useState(false);
 
+  // Marca el componente como montado en cliente para mostrar el ícono correcto de tema
   useEffect(() => {
     const timer = setTimeout(() => setMounted(true), 0);
     return () => clearTimeout(timer);
   }, []);
 
-  // Reset menu states on navigation without an Effect to avoid cascading render lint errors
+  // Cierra menús al cambiar de ruta (sin useEffect para evitar renders en cascada)
   const [lastPathname, setLastPathname] = useState(pathname);
   if (pathname !== lastPathname) {
     setLastPathname(pathname);
@@ -32,7 +39,7 @@ export default function Navbar() {
     setIsProfileOpen(false);
   }
 
-  // Close dropdown when clicking outside
+  // Cierra el dropdown de perfil al hacer clic fuera del contenedor
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -57,7 +64,7 @@ export default function Navbar() {
             </Link>
           </div>
           
-          {/* Desktop Menu */}
+          {/* Menú de navegación desktop */}
           <div className="hidden md:flex md:items-center md:gap-4">
             <Link href="/" className="bg-white text-brand-600 hover:bg-brand-50 font-semibold px-4 py-2 rounded-full shadow-sm hover:shadow-md transition-all text-sm">
               Inicio
@@ -81,6 +88,7 @@ export default function Navbar() {
              </button>
             <div className="w-px h-6 bg-white/20 mx-1"></div>
             
+            {/* Zona autenticada: notificaciones, publicar y menú de perfil */}
             {isAuthenticated ? (
                 <div className="relative flex items-center gap-4" ref={dropdownRef}>
                   <NotificationBell />
@@ -113,7 +121,7 @@ export default function Navbar() {
             
           </div>
 
-          {/* Mobile menu button */}
+          {/* Controles móvil: tema, avatar y botón hamburguesa */}
           <div className="flex items-center md:hidden gap-4">
             {isAuthenticated && <NotificationBell />}
             <button

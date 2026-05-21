@@ -1,3 +1,7 @@
+/**
+ * @file Mis publicaciones activas del usuario.
+ * @description Lista, edita y elimina viajes creados por el usuario autenticado.
+ */
 "use client";
 import { useState, useContext, useEffect } from 'react';
 import { AuthContext } from '@/context/AuthContext';
@@ -10,9 +14,11 @@ export default function MyPostsPage() {
   const { isAuthenticated, loading } = useContext(AuthContext);
   const router = useRouter();
   
+  // --- Estado ---
   const [posts, setPosts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  // --- Efectos ---
   useEffect(() => {
     if (!loading && !isAuthenticated) {
       router.push('/login');
@@ -35,6 +41,7 @@ export default function MyPostsPage() {
     if (isAuthenticated) fetchMyPosts();
   }, [isAuthenticated]);
 
+  // --- Handlers ---
   const handleDelete = async (id) => {
       if(!confirm('¿Estás seguro de eliminar esta publicación?')) return;
       try {
@@ -46,6 +53,7 @@ export default function MyPostsPage() {
       }
   }
 
+  /** Formatea fecha y hora de salida para la tarjeta de publicación. */
   const formatDate = (dateString) => {
     const options = { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
     return new Date(dateString).toLocaleDateString('es-AR', options);
@@ -53,6 +61,7 @@ export default function MyPostsPage() {
 
   if (loading || !isAuthenticated) return null;
 
+  // --- Render principal ---
   return (
     <div className="min-h-screen theme-bg py-10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

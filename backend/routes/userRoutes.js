@@ -1,3 +1,14 @@
+/**
+ * Rutas de perfil, publicaciones propias e historial del usuario.
+ * Monta en server.js bajo /api/users.
+ *
+ * Endpoints:
+ *   GET  /me/posts         — mis publicaciones activas
+ *   GET  /me/history       — viajes completados (ofrecidos / unidos)
+ *   GET  /me/trip-requests — solicitudes pendientes en mis viajes
+ *   PUT  /me               — actualizar perfil
+ *   GET  /admin/stats      — estadísticas (admin)
+ */
 const express = require('express');
 const router = express.Router();
 const {

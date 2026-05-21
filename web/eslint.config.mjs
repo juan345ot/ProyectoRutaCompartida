@@ -1,3 +1,7 @@
+/**
+ * Reglas ESLint del frontend (preset Next.js core-web-vitals).
+ * Ignora carpetas de build (.next, out) generadas por Next.
+ */
 import { defineConfig, globalIgnores } from "eslint/config";
 import nextVitals from "eslint-config-next/core-web-vitals";
 

@@ -1,3 +1,9 @@
+/**
+ * Punto de entrada HTTP de Ruta Compartida.
+ * Monta middlewares de seguridad, rutas /api, manejo global de errores y conexión a MongoDB.
+ * Consumido por: node server.js, tests (supertest importan app exportada).
+ * @module server
+ */
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
@@ -9,7 +15,7 @@ const connectDB = require('./config/db');
 const logger = require('./middleware/logger');
 const { startCronJobs } = require('./utils/cronJobs');
 
-// Connect to database
+// En tests Jest usa MongoMemoryServer vía tests/setup.js (no conectar aquí)
 if (process.env.NODE_ENV !== 'test') {
   connectDB().then(() => {
     // Iniciar tareas automatizadas una vez conectada la BD
@@ -19,7 +25,7 @@ if (process.env.NODE_ENV !== 'test') {
 
 const app = express();
 
-// Trust proxy for production environments (like Render, Heroku, etc.)
+// Necesario detrás de reverse proxy (Render, Vercel, etc.) para rate-limit por IP real
 app.set('trust proxy', 1);
 
 // Middlewares
@@ -27,16 +33,17 @@ app.use(helmet());
 app.use(compression());
 app.use(express.json({ limit: '2mb' }));
 
-// CORS Configuration
+// Orígenes permitidos del front (local + Vercel + FRONTEND_URL)
 const allowedOrigins = [
   'http://localhost:3000',
   process.env.FRONTEND_URL,
-  'https://ruta-compartida-web.vercel.app' // Optional: actual production URL
+  'https://ruta-compartida-web.vercel.app',
+  'https://proyecto-ruta-compartida.vercel.app',
 ].filter(Boolean);
 
 app.use(cors({
   origin: function (origin, callback) {
-    // allow requests with no origin (like mobile apps or curl requests)
+    // Peticiones sin Origin (Postman, apps móviles, health checks)
     if (!origin) return callback(null, true);
     if (allowedOrigins.indexOf(origin) === -1) {
       const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
@@ -59,12 +66,12 @@ if (process.env.NODE_ENV !== 'production') {
   app.use(morgan('dev'));
 }
 
-// Routes
+// Health check sin autenticación
 app.get('/api/status', (req, res) => {
   res.json({ status: 'OK', message: 'API is running' });
 });
 
-// Import route definitions
+// Montaje de routers por dominio
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/users', require('./routes/userRoutes'));
 app.use('/api/posts', require('./routes/postRoutes'));
@@ -74,7 +81,7 @@ app.use('/api/bookings', require('./routes/bookingRoutes'));
 app.use('/api/notifications', require('./routes/notificationRoutes'));
 app.use('/api/vehicles', require('./routes/vehicleRoutes'));
 
-// Global Error Handling Middleware
+// Último middleware: captura errores de rutas y CORS
 app.use((err, req, res, next) => {
   logger.error(`${err.message}`, { 
     url: req.originalUrl, 

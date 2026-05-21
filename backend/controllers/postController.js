@@ -1,15 +1,25 @@
+/**
+ * Controlador de publicaciones de viaje: listado, detalle, CRUD e interés.
+ * Aplica privacidad de contacto según participación aprobada.
+ * Consumido por: routes/postRoutes.js, reviewController (isApprovedParticipant).
+ */
 const mongoose = require('mongoose');
 const Post = require('../models/Post');
 const User = require('../models/User');
+const Booking = require('../models/Booking');
+const { syncInterestFromBooking } = require('../utils/bookingSync');
 
+/** URLs consideradas placeholder (no válidas para ofrecer viaje) */
 const PLACEHOLDER_SUBSTRINGS = ['via.placeholder', 'ui-avatars.com', 'placeholder'];
 
+/** True si el usuario tiene foto de perfil distinta de placeholders genéricos. */
 function hasRealProfilePhoto(user) {
   if (!user?.profileImage) return false;
   const u = String(user.profileImage).toLowerCase();
   return !PLACEHOLDER_SUBSTRINGS.some((p) => u.includes(p));
 }
 
+/** Quita teléfono y email del objeto autor antes de enviar al cliente. */
 function stripAuthorContact(author) {
   if (!author) return author;
   const o = typeof author.toObject === 'function' ? author.toObject() : { ...author };
@@ -18,11 +28,18 @@ function stripAuthorContact(author) {
   return o;
 }
 
+/** Normaliza id del visitante (req.user o null). */
 function viewerIdString(viewer) {
   if (!viewer) return null;
   return viewer._id ? viewer._id.toString() : String(viewer);
 }
 
+/**
+ * Indica si el usuario es autor del viaje o tiene interés aprobado (interestRequests).
+ * @param {object} post - Documento Post
+ * @param {string|import('mongoose').Types.ObjectId} userId
+ * @returns {boolean}
+ */
 function isApprovedParticipant(post, userId) {
   if (!userId) return false;
   const uid = userId.toString();
@@ -34,6 +51,7 @@ function isApprovedParticipant(post, userId) {
   );
 }
 
+/** Oculta contacto del autor si el visitante no es participante aprobado. */
 function sanitizePostForViewer(postDoc, viewerUser) {
   const post = postDoc.toObject ? postDoc.toObject({ virtuals: true }) : { ...postDoc };
   const vid = viewerIdString(viewerUser);
@@ -43,10 +61,12 @@ function sanitizePostForViewer(postDoc, viewerUser) {
   return post;
 }
 
+/** Autor para listados públicos (sin datos de contacto). */
 function publicListAuthor(author) {
   return stripAuthorContact(author);
 }
 
+/** Resuelve vehicle como ObjectId a documento Vehicle poblado. */
 async function populateVehicleForPost(postDoc) {
   if (!postDoc) return null;
   const post = typeof postDoc.toObject === 'function' ? postDoc.toObject({ virtuals: true }) : { ...postDoc };
@@ -62,13 +82,16 @@ async function populateVehicleForPost(postDoc) {
   return post;
 }
 
+/** Pobla vehículo en un array de publicaciones (listados). */
 async function populateVehicleForPosts(posts) {
   return Promise.all(posts.map(post => populateVehicleForPost(post)));
 }
 
-// @desc    Get all posts
-// @route   GET /api/posts
-// @access  Public (sin teléfono ni email del autor en listado)
+/**
+ * @descripcion Lista viajes activos con filtros; oculta contacto del autor
+ * @ruta GET /api/posts
+ * @acceso Público
+ */
 const getPosts = async (req, res) => {
   try {
     const { origin, destination, category, type, date, limit } = req.query;
@@ -110,9 +133,11 @@ const getPosts = async (req, res) => {
   }
 };
 
-// @desc    Get single post (contacto solo si soy autor o participante aprobado)
-// @route   GET /api/posts/:id
-// @access  Public + optionalAuth
+/**
+ * @descripcion Detalle de un viaje; contacto solo para autor o participante aprobado
+ * @ruta GET /api/posts/:id
+ * @acceso Público con optionalAuth
+ */
 const getPost = async (req, res) => {
   try {
     const post = await Post.findById(req.params.id)
@@ -124,6 +149,19 @@ const getPost = async (req, res) => {
     }
 
     const viewer = req.user || null;
+    const vid = viewerIdString(viewer);
+    if (vid && !isApprovedParticipant(post, vid)) {
+      const approvedBooking = await Booking.findOne({
+        post: post._id,
+        requester: vid,
+        status: 'approved',
+      });
+      if (approvedBooking) {
+        await syncInterestFromBooking(post._id, vid, 'approved');
+        await post.populate('interestRequests.user', 'name profileImage');
+      }
+    }
+
     const payload = sanitizePostForViewer(post, viewer);
     const populatedPayload = await populateVehicleForPost(payload);
     populatedPayload._canViewContact = isApprovedParticipant(post, viewerIdString(viewer));
@@ -133,9 +171,11 @@ const getPost = async (req, res) => {
   }
 };
 
-// @desc    Create new post
-// @route   POST /api/posts
-// @access  Private
+/**
+ * @descripcion Crea una publicación (valida foto, vehículo y duplicados por ruta/fecha)
+ * @ruta POST /api/posts
+ * @acceso Privado
+ */
 const createPost = async (req, res) => {
   try {
     const {
@@ -264,9 +304,11 @@ const createPost = async (req, res) => {
   }
 };
 
-// @desc    Solicitar unirse al viaje
-// @route   POST /api/posts/:id/interest
-// @access  Private
+/**
+ * @descripcion Registra interés pendiente en un viaje ajeno (interestRequests)
+ * @ruta POST /api/posts/:id/interest
+ * @acceso Privado
+ */
 const expressInterest = async (req, res) => {
   try {
     const post = await Post.findById(req.params.id);
@@ -299,9 +341,11 @@ const expressInterest = async (req, res) => {
   }
 };
 
-// @desc    Aprobar o rechazar interés
-// @route   PATCH /api/posts/:id/interest/:userId
-// @access  Private (solo autor)
+/**
+ * @descripcion Aprueba o rechaza una solicitud de interés pendiente
+ * @ruta PATCH /api/posts/:id/interest/:userId
+ * @acceso Privado (solo autor del viaje)
+ */
 const respondToInterest = async (req, res) => {
   try {
     const { action } = req.body;
@@ -334,9 +378,11 @@ const respondToInterest = async (req, res) => {
   }
 };
 
-// @desc    Marcar viaje completado (para historial y calificaciones)
-// @route   PATCH /api/posts/:id/complete
-// @access  Private — autor o participante aprobado
+/**
+ * @descripcion Marca el viaje como completado (habilita reseñas e historial)
+ * @ruta PATCH /api/posts/:id/complete
+ * @acceso Privado (autor o participante aprobado)
+ */
 const markPostComplete = async (req, res) => {
   try {
     const post = await Post.findById(req.params.id);
@@ -354,9 +400,11 @@ const markPostComplete = async (req, res) => {
   }
 };
 
-// @desc    Delete post
-// @route   DELETE /api/posts/:id
-// @access  Private
+/**
+ * @descripcion Elimina una publicación propia
+ * @ruta DELETE /api/posts/:id
+ * @acceso Privado (solo autor)
+ */
 const deletePost = async (req, res) => {
   try {
     const post = await Post.findById(req.params.id);
@@ -377,9 +425,11 @@ const deletePost = async (req, res) => {
   }
 };
 
-// @desc    Update post
-// @route   PATCH /api/posts/:id
-// @access  Private
+/**
+ * @descripcion Actualiza campos de una publicación propia
+ * @ruta PATCH /api/posts/:id
+ * @acceso Privado (solo autor)
+ */
 const updatePost = async (req, res) => {
   try {
     const post = await Post.findById(req.params.id);

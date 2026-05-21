@@ -1,8 +1,12 @@
+/**
+ * Favicon dinámico generado en el edge con el logo de Ruta Compartida.
+ * Usa ImageResponse de next/og para renderizar el SVG como PNG 32x32.
+ */
 import { ImageResponse } from 'next/og';
 
 export const runtime = 'edge';
 
-// Image metadata
+// Metadatos de tamaño y tipo del ícono
 export const size = {
   width: 32,
   height: 32,

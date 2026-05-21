@@ -1,3 +1,7 @@
+/**
+ * @file Panel de administración.
+ * @description Dashboard con métricas del sistema; acceso restringido a rol admin.
+ */
 "use client";
 import { useState, useEffect, useContext } from 'react';
 import { AuthContext } from '@/context/AuthContext';
@@ -9,6 +13,8 @@ import toast from 'react-hot-toast';
 export default function AdminDashboard() {
     const { user, isAuthenticated, loading } = useContext(AuthContext);
     const router = useRouter();
+
+    // --- Estado ---
     const [stats, setStats] = useState({
         totalUsers: 0,
         totalPosts: 0,
@@ -17,6 +23,7 @@ export default function AdminDashboard() {
     });
     const [isLoading, setIsLoading] = useState(true);
 
+    // --- Handlers ---
     const fetchStats = async () => {
         try {
             const res = await api.get('/users/admin/stats');
@@ -34,7 +41,7 @@ export default function AdminDashboard() {
         }
     };
 
-    // Effect for redirection/auth check
+    // --- Efectos ---
     useEffect(() => {
         if (!loading) {
             const isAdmin = user?.role === 'admin' || user?.email === 'juanignacio295@gmail.com';
@@ -45,7 +52,6 @@ export default function AdminDashboard() {
         }
     }, [isAuthenticated, user, loading, router]);
 
-    // Effect for fetching stats
     useEffect(() => {
         const isAdmin = user?.role === 'admin' || user?.email === 'juanignacio295@gmail.com';
         if (isAuthenticated && isAdmin) {
@@ -55,6 +61,7 @@ export default function AdminDashboard() {
 
     if (loading || isLoading) return <div className="p-20 text-center font-bold animate-pulse theme-text">Cargando Centro de Control...</div>;
 
+    // --- Render principal ---
     return (
         <div className="min-h-screen bg-transparent pb-20">
             <div className="bg-brand-900 pt-10 pb-32 shadow-inner">
@@ -125,6 +132,14 @@ export default function AdminDashboard() {
     );
 }
 
+/**
+ * Tarjeta de métrica para el panel administrativo.
+ * @param {object} props
+ * @param {import('lucide-react').LucideIcon} props.icon - Ícono de la métrica.
+ * @param {string} props.label - Etiqueta descriptiva.
+ * @param {number} props.value - Valor numérico a mostrar.
+ * @param {string} props.color - Clave de color (reservado para estilos futuros).
+ */
 function StatCard({ icon: Icon, label, value, color }) {
     return (
         <div className="theme-card rounded-3xl p-6 shadow-xl border-b-4 border-transparent hover:border-brand-500 transition-all group">

@@ -1,5 +1,10 @@
+/**
+ * Almacenamiento local (localStorage) para posts, intereses, reseñas y reportes.
+ * Complementa o simula datos del backend en flujos offline o de desarrollo.
+ */
 "use client";
 
+// Claves de localStorage usadas por el módulo
 const KEYS = {
   posts: "rc_local_posts",
   interests: "rc_post_interests",
@@ -7,6 +12,7 @@ const KEYS = {
   reports: "rc_reports",
 };
 
+// Lee y parsea JSON de localStorage con fallback seguro
 function readJson(key, fallback = []) {
   if (typeof window === "undefined") return fallback;
   try {
@@ -21,6 +27,8 @@ function writeJson(key, value) {
   if (typeof window === "undefined") return;
   localStorage.setItem(key, JSON.stringify(value));
 }
+
+// --- Publicaciones locales ---
 
 export function getLocalPosts() {
   return readJson(KEYS.posts, []);
@@ -50,6 +58,8 @@ export function getMergedPosts(remotePosts = []) {
 export function getPostById(postId, remotePosts = []) {
   return getMergedPosts(remotePosts).find((p) => p._id === postId) || null;
 }
+
+// --- Intereses / solicitudes de unirse a un viaje ---
 
 export function getInterests() {
   return readJson(KEYS.interests, []);
@@ -129,6 +139,8 @@ export function getTripsForUser(userId, remotePosts = []) {
   };
 }
 
+// --- Reseñas entre usuarios ---
+
 export function getReviews() {
   return readJson(KEYS.reviews, []);
 }
@@ -160,6 +172,8 @@ export function getReviewsForUser(userId) {
     given: reviews.filter((r) => r.fromUserId === userId),
   };
 }
+
+// --- Reportes de publicaciones o usuarios ---
 
 export function createReport(reportPayload) {
   const reports = readJson(KEYS.reports, []);

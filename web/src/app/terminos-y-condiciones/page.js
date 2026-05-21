@@ -1,3 +1,7 @@
+/**
+ * @file Términos y condiciones (versión resumida).
+ * @description Página legal estática enlazada desde el flujo de registro.
+ */
 import Link from 'next/link';
 import { ArrowLeft, ShieldCheck, FileText, UserCheck, AlertCircle } from 'lucide-react';
 
@@ -7,6 +11,7 @@ export const metadata = {
 };
 
 export default function TermsAndConditions() {
+  // --- Render principal ---
   return (
     <div className="min-h-screen bg-transparent py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto">

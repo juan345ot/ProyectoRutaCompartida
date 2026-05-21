@@ -1,3 +1,7 @@
+/**
+ * @file Página de calificaciones del usuario.
+ * @description Lista reseñas recibidas y emitidas con puntaje promedio en el encabezado.
+ */
 "use client";
 import { useState, useContext, useEffect, useCallback } from "react";
 import { AuthContext } from "@/context/AuthContext";
@@ -10,10 +14,13 @@ import toast from "react-hot-toast";
 export default function ReviewsPage() {
   const { user, isAuthenticated, loading } = useContext(AuthContext);
   const router = useRouter();
+
+  // --- Estado ---
   const [data, setData] = useState({ received: [], given: [] });
   const [isLoading, setIsLoading] = useState(true);
   const [section, setSection] = useState("received");
 
+  // --- Handlers ---
   const load = useCallback(async () => {
     try {
       const res = await api.get("/reviews/me");
@@ -25,6 +32,7 @@ export default function ReviewsPage() {
     }
   }, []);
 
+  // --- Efectos ---
   useEffect(() => {
     if (!loading && !isAuthenticated) router.push("/login");
   }, [isAuthenticated, loading, router]);
@@ -33,8 +41,10 @@ export default function ReviewsPage() {
     if (isAuthenticated && user) load();
   }, [isAuthenticated, user, load]);
 
+  /** Formatea la fecha de una reseña. */
   const formatDate = (dateString) => new Date(dateString).toLocaleDateString("es-AR");
 
+  /** Renderiza cinco estrellas según el puntaje numérico. */
   const renderStars = (rating) => {
     const stars = [];
     for (let i = 1; i <= 5; i++) {
@@ -48,6 +58,7 @@ export default function ReviewsPage() {
     return stars;
   };
 
+  /** Texto descriptivo del rol del autor de la reseña (conductor o pasajero). */
   const roleLabel = (r, kind) => {
     if (kind === "received") {
       if (r.reviewerRole === "driver") return "Te calificó el conductor (vos eras pasajero)";
@@ -63,6 +74,7 @@ export default function ReviewsPage() {
   const given = data.given || [];
   const list = section === "received" ? received : given;
 
+  // --- Render principal ---
   return (
     <div className="min-h-screen bg-transparent py-10">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">

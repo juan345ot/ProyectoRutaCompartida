@@ -1,7 +1,12 @@
+/**
+ * Modelo de vehículo registrado por un usuario (ofertas de viaje).
+ * Consumido por: vehicleController, postController (al crear/editar ofertas).
+ */
 const mongoose = require('mongoose');
 
 const vehicleSchema = new mongoose.Schema(
   {
+    // Dueño del vehículo
     owner: {
       type: mongoose.Schema.ObjectId,
       ref: 'User',
@@ -27,6 +32,7 @@ const vehicleSchema = new mongoose.Schema(
       required: [true, 'El color del vehículo es requerido.'],
       trim: true,
     },
+    // Imagen en base64 (obligatoria para ofertas)
     photoDataUrl: {
       type: String,
       required: [true, 'La foto del vehículo es requerida.'],
@@ -53,7 +59,7 @@ const vehicleSchema = new mongoose.Schema(
   }
 );
 
-// Asegurar índices de búsqueda rápidos
+// Búsqueda rápida de vehículos por usuario
 vehicleSchema.index({ owner: 1 });
 
 module.exports = mongoose.model('Vehicle', vehicleSchema);

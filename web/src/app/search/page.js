@@ -1,3 +1,7 @@
+/**
+ * @file Tablón de búsqueda de viajes.
+ * @description Lista publicaciones con filtros por origen, destino, fecha, categoría y tipo (oferta/solicitud).
+ */
 "use client";
 import { useState, useContext, useEffect, useCallback } from 'react';
 import api from '@/lib/api';
@@ -8,7 +12,7 @@ import SearchPostCard from '@/components/SearchPostCard';
 import SearchPostCardSkeleton from '@/components/SearchPostCardSkeleton';
 import toast from 'react-hot-toast';
 
-// Mock Data para visualizar antes de conectar la API
+/** Datos de respaldo en desarrollo si falla la API de publicaciones. */
 const MOCK_POSTS = [
   {
     _id: "1",
@@ -49,6 +53,7 @@ const MOCK_POSTS = [
 ];
 
 export default function SearchPage() {
+  // --- Estado ---
   const [filters, setFilters] = useState({
     origin: '',
     destination: '',
@@ -60,6 +65,7 @@ export default function SearchPage() {
   const [loading, setLoading] = useState(true);
   const { isAuthenticated, user } = useContext(AuthContext);
 
+  // --- Handlers ---
   const fetchPosts = useCallback(async (searchFilters = filters) => {
     setLoading(true);
     try {
@@ -81,6 +87,7 @@ export default function SearchPage() {
     }
   }, [filters]);
 
+  // --- Efectos ---
   useEffect(() => {
     fetchPosts();
   }, [fetchPosts]);
@@ -93,6 +100,7 @@ export default function SearchPage() {
     setFilters({ origin: '', destination: '', date: '', category: '', type: '' });
   };
 
+  // --- Render principal ---
   return (
     <div className="min-h-screen bg-transparent">
       {/* Search Header */}

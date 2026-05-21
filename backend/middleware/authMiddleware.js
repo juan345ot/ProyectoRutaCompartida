@@ -1,6 +1,15 @@
+/**
+ * Middleware de autenticación JWT (rutas protegidas).
+ * Verifica Bearer token y adjunta req.user sin contraseña.
+ * Consumido por: todas las routes que usan protect.
+ */
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
+/**
+ * Exige Authorization: Bearer <token> válido.
+ * En test no loguea warnings de token inválido para no ensuciar la salida.
+ */
 const protect = async (req, res, next) => {
   let token;
 
@@ -24,7 +33,10 @@ const protect = async (req, res, next) => {
 
       next();
     } catch (error) {
-      console.error(error);
+      if (process.env.NODE_ENV !== 'test') {
+        const logger = require('./logger');
+        logger.warn('Auth middleware:', error.message);
+      }
       const message = error.name === 'TokenExpiredError' 
         ? 'Sesión expirada, por favor inicia sesión de nuevo' 
         : 'No autorizado, token inválido';

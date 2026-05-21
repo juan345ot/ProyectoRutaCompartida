@@ -1,9 +1,15 @@
+/**
+ * Controlador CRUD de vehículos del usuario autenticado.
+ * Consumido por: routes/vehicleRoutes.js.
+ */
 const Vehicle = require('../models/Vehicle');
 const Post = require('../models/Post');
 
-// @desc    Get all vehicles of the authenticated user
-// @route   GET /api/vehicles
-// @access  Private
+/**
+ * @descripcion Lista todos los vehículos registrados por el usuario
+ * @ruta GET /api/vehicles
+ * @acceso Privado
+ */
 const getMyVehicles = async (req, res) => {
   try {
     const vehicles = await Vehicle.find({ owner: req.user.id }).sort({ createdAt: -1 });
@@ -13,9 +19,11 @@ const getMyVehicles = async (req, res) => {
   }
 };
 
-// @desc    Create a new vehicle
-// @route   POST /api/vehicles
-// @access  Private
+/**
+ * @descripcion Registra un vehículo nuevo en la cuenta del usuario
+ * @ruta POST /api/vehicles
+ * @acceso Privado
+ */
 const createVehicle = async (req, res) => {
   try {
     const {
@@ -51,9 +59,11 @@ const createVehicle = async (req, res) => {
   }
 };
 
-// @desc    Update a vehicle
-// @route   PATCH /api/vehicles/:id
-// @access  Private
+/**
+ * @descripcion Actualiza datos de un vehículo propio
+ * @ruta PATCH /api/vehicles/:id
+ * @acceso Privado (solo dueño)
+ */
 const updateVehicle = async (req, res) => {
   try {
     const vehicle = await Vehicle.findById(req.params.id);
@@ -95,9 +105,11 @@ const updateVehicle = async (req, res) => {
   }
 };
 
-// @desc    Delete a vehicle
-// @route   DELETE /api/vehicles/:id
-// @access  Private
+/**
+ * @descripcion Elimina un vehículo si no está ligado a viajes activos
+ * @ruta DELETE /api/vehicles/:id
+ * @acceso Privado (solo dueño)
+ */
 const deleteVehicle = async (req, res) => {
   try {
     const vehicle = await Vehicle.findById(req.params.id);

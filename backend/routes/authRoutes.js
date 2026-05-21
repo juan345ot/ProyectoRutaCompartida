@@ -1,3 +1,13 @@
+/**
+ * Rutas de autenticación y sesión.
+ * Monta en server.js bajo /api/auth.
+ *
+ * Endpoints:
+ *   POST /register  — registro con validación
+ *   POST /login     — inicio de sesión
+ *   POST /google    — login/registro con Google
+ *   GET  /me        — usuario actual (protegido)
+ */
 const express = require('express');
 const router = express.Router();
 const { check, validationResult } = require('express-validator');

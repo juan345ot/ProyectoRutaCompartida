@@ -1,3 +1,7 @@
+/**
+ * @file Itinerario y gestión de interés en un viaje.
+ * @description Mapa, datos del viaje, solicitudes, contacto WhatsApp y modal "Me interesa".
+ */
 "use client";
 import { useContext, useEffect, useState, useCallback, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
@@ -28,6 +32,8 @@ export default function TravelDetailClient() {
   const { id } = useParams();
   const router = useRouter();
   const { user, isAuthenticated } = useContext(AuthContext);
+
+  // --- Estado ---
   const [post, setPost] = useState(null);
   const [loading, setLoading] = useState(true);
   const [estimatedArrival, setEstimatedArrival] = useState(null);
@@ -35,6 +41,7 @@ export default function TravelDetailClient() {
   const [travelDuration, setTravelDuration] = useState(null);
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
   const [bookings, setBookings] = useState([]);
+  const [myBooking, setMyBooking] = useState(null);
   const [bookingFormData, setBookingFormData] = useState({
     seatsRequested: 1,
     weightRequested: "",
@@ -50,13 +57,13 @@ export default function TravelDetailClient() {
 
   const uid = user?._id || user?.id;
 
+  // --- Handlers (carga de datos) ---
   const loadPost = useCallback(async () => {
     setLoading(true);
     try {
       const res = await api.get(`/posts/${id}`);
       setPost(res.data);
-    } catch (err) {
-      console.error("Error loading post:", err);
+    } catch {
       setPost(null);
       toast.error("Error al cargar la publicación");
     } finally {
@@ -72,11 +79,25 @@ export default function TravelDetailClient() {
         const bRes = await api.get(`/bookings/my-offers`);
         setBookings(bRes.data.filter(b => String(b.post?._id || b.post) === String(id)));
       }
-    } catch (err) {
-      console.error("Error loading bookings:", err);
+    } catch {
+      setBookings([]);
     }
   }, [id, uid, post]);
 
+  const loadMyBooking = useCallback(async () => {
+    if (!uid) return;
+    try {
+      const res = await api.get("/bookings/my-requests");
+      const mine = res.data.find(
+        (b) => String(b.post?._id || b.post) === String(id)
+      );
+      setMyBooking(mine || null);
+    } catch {
+      setMyBooking(null);
+    }
+  }, [id, uid]);
+
+  // --- Efectos ---
   useEffect(() => {
     loadPost();
   }, [loadPost]);
@@ -84,8 +105,9 @@ export default function TravelDetailClient() {
   useEffect(() => {
     if (post && uid) {
       loadBookings();
+      loadMyBooking();
     }
-  }, [post, uid, loadBookings]);
+  }, [post, uid, loadBookings, loadMyBooking]);
 
   useEffect(() => {
     if (post && mapRef.current && typeof window !== 'undefined' && window.google) {
@@ -143,6 +165,7 @@ export default function TravelDetailClient() {
     }
   }, [post]);
 
+  // --- Handlers (acciones de usuario) ---
   const handleMeInteresaClick = () => {
     if (!isAuthenticated) {
       toast.error("Debes iniciar sesión para mostrar interés");
@@ -156,11 +179,13 @@ export default function TravelDetailClient() {
     try {
       await api.post(`/bookings`, {
         post: id,
-        ...bookingFormData
+        type: post.category === "package" ? "package" : "passenger",
+        ...bookingFormData,
       });
       toast.success("Tu solicitud de interés ha sido enviada");
       setIsBookingModalOpen(false);
       loadPost();
+      loadMyBooking();
     } catch (err) {
       toast.error(err.response?.data?.message || "Error al enviar solicitud");
     }
@@ -168,9 +193,10 @@ export default function TravelDetailClient() {
 
   const handleInterestResponse = async (bookingId, status) => {
     try {
-      await api.patch(`/bookings/${bookingId}`, { status });
+      await api.put(`/bookings/${bookingId}`, { status });
       toast.success(`Solicitud ${status === 'approved' ? 'aprobada' : 'rechazada'}`);
       loadPost();
+      loadBookings();
     } catch {
       toast.error("Error al procesar la solicitud");
     }
@@ -222,11 +248,12 @@ export default function TravelDetailClient() {
   }
 
   const isOwner = uid && post.author?._id === uid;
-  const myRequest = post.bookings?.find(b => (b.user?._id || b.user) === uid);
+  const myRequest = myBooking;
   const canViewContact = isOwner || myRequest?.status === "approved";
   const phone = post.author?.phone;
   const waDigits = phone?.replace(/\D/g, "");
 
+  // --- Render principal ---
   return (
     <div className="max-w-5xl mx-auto px-4 py-10">
       {/* Header / Info Section */}
@@ -484,7 +511,7 @@ export default function TravelDetailClient() {
                          bookings.map(b => (
                            <div key={b._id} className="p-4 rounded-xl border border-current/10 bg-current/5">
                               <div className="flex justify-between items-start mb-2">
-                                <span className="font-black theme-text uppercase text-xs">{b.user?.name || 'Usuario'}</span>
+                                <span className="font-black theme-text uppercase text-xs">{b.requester?.name || 'Usuario'}</span>
                                 <span className={`text-[10px] uppercase font-black px-2 py-1 rounded-md ${
                                   b.status === 'approved' ? 'bg-green-500 text-white' : 
                                   b.status === 'rejected' ? 'bg-red-500 text-white' : 'bg-brand-500 text-white'
@@ -501,8 +528,8 @@ export default function TravelDetailClient() {
                                 </div>
                               )}
                               
-                              {b.status === 'approved' && b.user?.phone && (
-                                <a href={`https://wa.me/${b.user.phone.replace(/\D/g, '')}`} target="_blank" rel="noreferrer" className="block text-center bg-green-500 text-white py-2 rounded-lg text-[10px] font-black uppercase hover:bg-green-600 transition-all">
+                              {b.status === 'approved' && b.requester?.phone && (
+                                <a href={`https://wa.me/${b.requester.phone.replace(/\D/g, '')}`} target="_blank" rel="noreferrer" className="block text-center bg-green-500 text-white py-2 rounded-lg text-[10px] font-black uppercase hover:bg-green-600 transition-all">
                                    Escribir al WhatsApp
                                 </a>
                               )}

@@ -1,27 +1,35 @@
+/**
+ * Modelo de reserva / solicitud "Me interesa" sobre un viaje (Post).
+ * Consumido por: bookingController, cronJobs, postController (sincronización).
+ */
 const mongoose = require('mongoose');
 
 const bookingSchema = new mongoose.Schema(
   {
+    // Viaje al que se aplica la solicitud
     post: {
       type: mongoose.Schema.ObjectId,
       ref: 'Post',
       required: true,
     },
+    // Usuario que solicita lugar o envío de paquete
     requester: {
       type: mongoose.Schema.ObjectId,
       ref: 'User',
       required: true,
     },
+    // Estado de la solicitud por parte del autor del viaje
     status: {
       type: String,
       enum: ['pending', 'approved', 'rejected'],
       default: 'pending',
     },
+    // Alineado con post.category: passenger | package
     type: {
       type: String, // 'passenger' or 'package'  to match post
       required: true,
     },
-    // For passengers
+    // --- Campos para pasajeros ---
     seatsRequested: {
       type: Number,
     },
@@ -36,7 +44,7 @@ const bookingSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
-    // For packages
+    // --- Campos para paquetes ---
     weightRequested: {
       type: Number,
     },
@@ -52,6 +60,7 @@ const bookingSchema = new mongoose.Schema(
       width: { type: Number },
       height: { type: Number },
     },
+    // Mensaje opcional al conductor
     message: {
       type: String,
       maxlength: 1000,

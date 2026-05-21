@@ -1,3 +1,7 @@
+/**
+ * Dropdown del perfil en la barra de navegación (desktop).
+ * Enlaces a datos, publicaciones, vehículos, solicitudes y cierre de sesión.
+ */
 "use client";
 import Link from 'next/link';
 import { Settings, List, Map, Star, LogOut, MessageSquare, Car } from 'lucide-react';
@@ -11,6 +15,7 @@ export default function NavProfileDropdown({ user, logout, isOpen }) {
         <p className="text-sm font-medium text-gray-900 truncate">{user.name}</p>
         <p className="text-xs text-gray-500 truncate">{user.email}</p>
       </div>
+      {/* Enlaces principales de la cuenta */}
       <div className="p-2">
         <Link href="/profile" className="flex items-center gap-3 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-brand-600 rounded-xl transition-colors">
           <Settings className="h-4 w-4" /> Mis Datos

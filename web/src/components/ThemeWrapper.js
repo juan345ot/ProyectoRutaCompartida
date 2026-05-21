@@ -1,3 +1,7 @@
+/**
+ * Contenedor que aplica fondo y variables CSS según el tema activo.
+ * Evita parpadeos de hidratación usando estilos light por defecto en SSR.
+ */
 "use client";
 import { useTheme } from "@/context/ThemeContext";
 import { useState, useEffect } from "react";
@@ -6,6 +10,7 @@ import { useState, useEffect } from "react";
 export default function ThemeWrapper({ children }) {
   const { theme } = useTheme();
 
+  // Paleta y variables CSS para modo oscuro
   const darkStyles = {
     backgroundColor: '#0c4a6e',
     backgroundImage: `
@@ -22,6 +27,7 @@ export default function ThemeWrapper({ children }) {
     '--page-text': '#f0f9ff',
   };
 
+  // Paleta y variables CSS para modo claro
   const lightStyles = {
     backgroundColor: '#ffffff',
     backgroundImage: `
@@ -38,6 +44,7 @@ export default function ThemeWrapper({ children }) {
     '--page-text': '#0f172a',
   };
 
+  // Espera al montaje en cliente antes de aplicar el tema real (evita mismatch SSR)
   const [mounted, setMounted] = useState(false);
   useEffect(() => {
     const timer = setTimeout(() => setMounted(true), 0);
@@ -45,7 +52,7 @@ export default function ThemeWrapper({ children }) {
   }, []);
 
   const currentStyles = theme === 'dark' ? darkStyles : lightStyles;
-  const initialStyles = lightStyles; // Default for SSR
+  const initialStyles = lightStyles; // Estilos por defecto en SSR antes del montaje
 
   return (
     <div 

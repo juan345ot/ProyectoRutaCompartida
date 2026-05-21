@@ -1,3 +1,7 @@
+/**
+ * Campana de notificaciones con dropdown y contador de no leídas.
+ * Consulta la API periódicamente y permite marcar como leídas.
+ */
 "use client";
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Bell, Check, ExternalLink } from 'lucide-react';
@@ -5,11 +9,13 @@ import api from '@/lib/api';
 import Link from 'next/link';
 
 export default function NotificationBell() {
+  // Estado: lista de notificaciones, contador y visibilidad del panel
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
 
+  // Obtiene notificaciones del backend y actualiza el contador de no leídas
   const fetchNotifications = useCallback(async () => {
     try {
       const res = await api.get('/notifications');
@@ -20,11 +26,12 @@ export default function NotificationBell() {
     }
   }, []);
 
+  // Carga inicial y polling cada minuto para nuevas notificaciones
   useEffect(() => {
     const timer = setTimeout(() => {
       fetchNotifications();
     }, 0);
-    const interval = setInterval(fetchNotifications, 60000); // Check every minute
+    const interval = setInterval(fetchNotifications, 60000);
     return () => {
       clearTimeout(timer);
       clearInterval(interval);
@@ -41,6 +48,7 @@ export default function NotificationBell() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // Marca todas las notificaciones como leídas en el servidor
   const markAllAsRead = async () => {
     try {
       await api.patch('/notifications/read-all');
@@ -51,6 +59,7 @@ export default function NotificationBell() {
     }
   };
 
+  // Marca una notificación individual como leída
   const markOneRead = async (id) => {
     try {
       await api.patch(`/notifications/${id}/read`);
@@ -75,6 +84,7 @@ export default function NotificationBell() {
         )}
       </button>
 
+      {/* Panel desplegable con listado de notificaciones */}
       {isOpen && (
         <div className="fixed top-[70px] left-4 right-4 sm:absolute sm:top-auto sm:left-auto sm:-right-2 sm:mt-2 w-auto sm:w-80 md:w-96 theme-card rounded-3xl shadow-2xl overflow-hidden z-[100] border border-current/10 animate-in fade-in slide-in-from-top-2 duration-200">
           <div className="p-4 border-b border-current/5 flex items-center justify-between bg-current/5">
@@ -96,6 +106,7 @@ export default function NotificationBell() {
                 <p className="text-xs theme-text opacity-50 font-bold">No tienes notificaciones aún</p>
               </div>
             ) : (
+              /* Listado de notificaciones */
               notifications.map((n) => (
                 <div 
                   key={n._id}
