@@ -134,7 +134,7 @@ export default function MyVehiclesPage() {
     setSaving(true);
     try {
       if (isEditing) {
-        await api.put(`/vehicles/${currentId}`, formData);
+        await api.patch(`/vehicles/${currentId}`, formData);
         toast.success('Vehículo actualizado con éxito.');
       } else {
         await api.post('/vehicles', formData);
@@ -162,7 +162,7 @@ export default function MyVehiclesPage() {
           <div className="flex items-center gap-3">
             <button 
               onClick={() => router.push('/profile')}
-              className="h-10 w-10 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 rounded-2xl flex items-center justify-center theme-text transition-colors"
+              className="h-10 w-10 bg-gray-700 hover:bg-gray-900 dark:bg-gray-800 dark:hover:bg-gray-700 rounded-2xl flex items-center justify-center text-white transition-colors shadow-md"
             >
               <ArrowLeft className="h-5 w-5" />
             </button>
@@ -226,14 +226,14 @@ export default function MyVehiclesPage() {
                   <div className="absolute top-4 right-4 flex gap-2">
                     <button 
                       onClick={() => handleOpenEdit(v)}
-                      className="h-8 w-8 bg-white/95 hover:bg-white text-gray-700 hover:text-brand-600 rounded-full flex items-center justify-center shadow-md transition-all"
+                      className="h-9 w-9 bg-white hover:bg-brand-600 text-brand-600 hover:text-white rounded-full flex items-center justify-center shadow-lg border border-brand-200 hover:border-brand-600 transition-all duration-200"
                       title="Editar vehículo"
                     >
                       <Edit2 className="h-4 w-4" />
                     </button>
                     <button 
                       onClick={() => handleDelete(v._id)}
-                      className="h-8 w-8 bg-white/95 hover:bg-red-50 text-red-500 hover:text-red-600 rounded-full flex items-center justify-center shadow-md transition-all"
+                      className="h-9 w-9 bg-white hover:bg-red-600 text-red-600 hover:text-white rounded-full flex items-center justify-center shadow-lg border border-red-200 hover:border-red-600 transition-all duration-200"
                       title="Eliminar vehículo"
                     >
                       <Trash2 className="h-4 w-4" />
