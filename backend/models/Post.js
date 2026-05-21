@@ -96,7 +96,7 @@ const postSchema = new mongoose.Schema(
       enum: ['active', 'completed', 'cancelled'],
       default: 'active',
     },
-    vehicle: vehicleSchema,
+    vehicle: mongoose.Schema.Types.Mixed,
     interestRequests: {
       type: [interestRequestSchema],
       default: [],

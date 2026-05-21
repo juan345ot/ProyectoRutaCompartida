@@ -72,6 +72,7 @@ app.use('/api/reviews', require('./routes/reviewRoutes'));
 app.use('/api/reports', require('./routes/reportRoutes'));
 app.use('/api/bookings', require('./routes/bookingRoutes'));
 app.use('/api/notifications', require('./routes/notificationRoutes'));
+app.use('/api/vehicles', require('./routes/vehicleRoutes'));
 
 // Global Error Handling Middleware
 app.use((err, req, res, next) => {

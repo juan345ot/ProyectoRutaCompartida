@@ -38,17 +38,12 @@ function PublishContent() {
     smoke: false,
     pets: false,
   });
-  const [vehiclePhotoPreview, setVehiclePhotoPreview] = useState(null);
-  const [vehicleFields, setVehicleFields] = useState({
-    brand: "",
-    model: "",
-    year: "",
-    color: "",
-    licensePlate: "",
-    vtvExpiry: "",
-    insuranceVerified: false,
-    extraNotes: "",
-  });
+
+  // Vehículos (Nueva Arquitectura)
+  const [vehicles, setVehicles] = useState([]);
+  const [selectedVehicleId, setSelectedVehicleId] = useState("");
+  const [loadingVehicles, setLoadingVehicles] = useState(false);
+  const [legacyVehicle, setLegacyVehicle] = useState(null);
 
   const { isAuthenticated, loading, user } = useContext(AuthContext);
   const router = useRouter();
@@ -59,6 +54,28 @@ function PublishContent() {
       router.push("/login?redirect=publish");
     }
   }, [isAuthenticated, loading, router]);
+
+  useEffect(() => {
+    const fetchMyVehicles = async () => {
+      if (isAuthenticated) {
+        try {
+          setLoadingVehicles(true);
+          const res = await api.get("/vehicles");
+          const data = res.data || [];
+          setVehicles(data);
+          // Si estamos editando y ya se configuró un id, no pisarlo
+          if (data.length > 0 && !selectedVehicleId) {
+            setSelectedVehicleId(data[0]._id);
+          }
+        } catch (err) {
+          console.error("Error fetching vehicles:", err);
+        } finally {
+          setLoadingVehicles(false);
+        }
+      }
+    };
+    fetchMyVehicles();
+  }, [isAuthenticated]);
 
   useEffect(() => {
     const edit = searchParams.get("edit");
@@ -97,17 +114,15 @@ function PublishContent() {
         });
 
         if (data.vehicle) {
-           setVehicleFields({
-             brand: data.vehicle.brand || "",
-             model: data.vehicle.model || "",
-             year: data.vehicle.year || "",
-             color: data.vehicle.color || "",
-             licensePlate: data.vehicle.licensePlate || "",
-             vtvExpiry: data.vehicle.vtvExpiry ? data.vehicle.vtvExpiry.split('T')[0] : "",
-             insuranceVerified: data.vehicle.insuranceVerified || false,
-             extraNotes: data.vehicle.extraNotes || "",
-           });
-           setVehiclePhotoPreview(data.vehicle.photoDataUrl || null);
+          const isId = (typeof data.vehicle === 'string' && data.vehicle.length === 24) || (data.vehicle && data.vehicle._id);
+          if (isId) {
+            setSelectedVehicleId(data.vehicle._id || data.vehicle);
+            setLegacyVehicle(null);
+          } else {
+            // Es un objeto legacy completo
+            setLegacyVehicle(data.vehicle);
+            setSelectedVehicleId("legacy");
+          }
         }
      } catch (err) {
         toast.error("Error al cargar datos para editar");
@@ -168,20 +183,6 @@ function PublishContent() {
     };
   }, []);
 
-  const handleVehiclePhoto = (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (file.size > 800000) {
-      toast.error("La foto debe pesar menos de ~800 KB");
-      return;
-    }
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setVehiclePhotoPreview(reader.result);
-    };
-    reader.readAsDataURL(file);
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -202,11 +203,8 @@ function PublishContent() {
             "Para ofrecer lugar necesitás una foto de perfil real en Mis Datos. Podés publicar búsquedas sin foto."
           );
         }
-        if (!vehiclePhotoPreview || vehiclePhotoPreview.length < 100) {
-          throw new Error("Subí una foto del vehículo");
-        }
-        if (!vehicleFields.licensePlate.trim()) {
-          throw new Error("Completá la patente");
+        if (!selectedVehicleId) {
+          throw new Error("Seleccioná un vehículo. Si no tenés uno, registralo en 'Mis Vehículos'.");
         }
       }
 
@@ -242,15 +240,11 @@ function PublishContent() {
       };
 
       if (formData.type === "offer") {
-        payload.vehicle = {
-          photoDataUrl: vehiclePhotoPreview,
-          brand: vehicleFields.brand.trim(),
-          model: vehicleFields.model.trim(),
-          year: vehicleFields.year.trim(),
-          color: vehicleFields.color.trim(),
-          licensePlate: vehicleFields.licensePlate.trim(),
-          extraNotes: vehicleFields.extraNotes || undefined,
-        };
+        if (selectedVehicleId === "legacy") {
+          payload.vehicle = legacyVehicle;
+        } else {
+          payload.vehicle = selectedVehicleId;
+        }
       }
 
       if (isEditing) {
@@ -362,103 +356,141 @@ function PublishContent() {
             </div>
 
             {formData.type === "offer" && (
-              <div className="space-y-4 rounded-2xl border border-emerald-500/30 bg-emerald-500/5 p-5">
-                <h2 className="text-lg font-bold theme-text flex items-center gap-2">
-                  <Car className="h-5 w-5 text-emerald-600" /> Datos del vehículo (obligatorio para ofrecer)
-                </h2>
-                {!userHasProfilePhoto(user) && (
-                  <p className="text-sm text-amber-800 dark:text-amber-200 bg-amber-500/15 p-3 rounded-xl border border-amber-500/30">
-                    <Shield className="inline h-4 w-4 mr-1" />
-                    Subí una foto de perfil real en{" "}
-                    <Link href="/profile" className="underline font-semibold">
-                      Mis Datos
-                    </Link>{" "}
-                    antes de ofrecer un viaje.
-                  </p>
-                )}
-                <div>
-                  <label className="block text-sm font-medium theme-text mb-1">Foto del vehículo</label>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleVehiclePhoto}
-                    className="w-full text-sm theme-text"
-                  />
-                  {vehiclePhotoPreview && (
-                    <div className="relative mt-3 h-40 rounded-xl overflow-hidden border border-current/20">
-                      <Image src={vehiclePhotoPreview} alt="Vista previa" fill className="object-cover" unoptimized />
-                    </div>
+              <div className="space-y-6 rounded-[2rem] border border-emerald-500/20 bg-emerald-500/5 p-6 md:p-8 shadow-inner relative overflow-hidden animate-in fade-in duration-300">
+                <div className="absolute top-0 left-0 w-full h-1.5 bg-emerald-600" />
+                
+                <div className="flex items-center justify-between border-b border-gray-100 dark:border-gray-800 pb-4">
+                  <h2 className="text-lg font-bold theme-text flex items-center gap-2 uppercase tracking-wide text-xs">
+                    <Car className="h-5 w-5 text-emerald-600" /> Selección de Vehículo
+                  </h2>
+                  {vehicles.length > 0 && (
+                    <Link 
+                      href="/my-vehicles" 
+                      target="_blank"
+                      className="text-xs font-bold text-brand-600 hover:text-brand-500 underline flex items-center gap-1"
+                    >
+                      ✏️ Administrar Vehículos
+                    </Link>
                   )}
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium theme-text mb-1">Marca del vehículo</label>
-                    <input
-                      type="text"
-                      required={formData.type === "offer"}
-                      value={vehicleFields.brand}
-                      onChange={(e) => setVehicleFields({ ...vehicleFields, brand: e.target.value })}
-                      className="w-full rounded-xl border border-gray-300 dark:border-gray-600 py-3 px-4 theme-text bg-white dark:bg-gray-900"
-                      placeholder="Ej: Ford, Toyota, Fiat..."
-                    />
+
+                {!userHasProfilePhoto(user) && (
+                  <p className="text-xs text-amber-800 dark:text-amber-200 bg-amber-500/10 p-4 rounded-2xl border border-amber-500/20 flex gap-2">
+                    <Shield className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
+                    <span>
+                      <strong>Foto de perfil obligatoria:</strong> Recordá que necesitás una foto de perfil real en{" "}
+                      <Link href="/profile" className="underline font-bold hover:text-amber-500">
+                        Mis Datos
+                      </Link>{" "}
+                      para poder ofrecer viajes.
+                    </span>
+                  </p>
+                )}
+
+                {loadingVehicles ? (
+                  <div className="flex items-center justify-center py-6 gap-2">
+                    <div className="h-5 w-5 border-2 border-brand-500 border-t-transparent rounded-full animate-spin"></div>
+                    <p className="text-sm theme-text opacity-70">Buscando tus vehículos...</p>
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium theme-text mb-1">Modelo</label>
-                    <input
-                      type="text"
-                      required={formData.type === "offer"}
-                      value={vehicleFields.model}
-                      onChange={(e) => setVehicleFields({ ...vehicleFields, model: e.target.value })}
-                      className="w-full rounded-xl border border-gray-300 dark:border-gray-600 py-3 px-4 theme-text bg-white dark:bg-gray-900"
-                      placeholder="Ej: Fiesta, Corolla..."
-                    />
+                ) : vehicles.length === 0 ? (
+                  <div className="border border-dashed border-emerald-500/30 rounded-2xl p-6 text-center bg-white/50 dark:bg-gray-900/30">
+                    <Car className="h-10 w-10 text-emerald-600/50 mx-auto mb-3" />
+                    <h4 className="text-sm font-bold theme-text mb-1">No tenés ningún vehículo registrado</h4>
+                    <p className="text-xs theme-text opacity-60 max-w-sm mx-auto mb-4 leading-relaxed">
+                      Para ofrecer un viaje, primero debés registrar un vehículo en la nueva sección de tu cuenta.
+                    </p>
+                    <Link 
+                      href="/my-vehicles"
+                      target="_blank"
+                      className="inline-flex items-center gap-2 bg-emerald-700 hover:bg-emerald-600 text-white font-bold text-xs uppercase tracking-wider py-2.5 px-6 rounded-xl shadow-md transition-all active:scale-95"
+                    >
+                      ✚ Registrar mi vehículo ahora
+                    </Link>
+                    <p className="text-[10px] theme-text opacity-40 mt-2 font-medium">
+                      (Al finalizar, refrescá esta página para seleccionarlo)
+                    </p>
                   </div>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium theme-text mb-1">Año</label>
-                    <input
-                      type="number"
-                      required={formData.type === "offer"}
-                      value={vehicleFields.year}
-                      onChange={(e) => setVehicleFields({ ...vehicleFields, year: e.target.value })}
-                      className="w-full rounded-xl border border-gray-300 dark:border-gray-600 py-3 px-4 theme-text bg-white dark:bg-gray-900"
-                      placeholder="Ej: 2018"
-                    />
+                ) : (
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-xs font-bold theme-text opacity-70 uppercase tracking-wider mb-2">
+                        Elegí uno de tus vehículos *
+                      </label>
+                      <select
+                        value={selectedVehicleId}
+                        onChange={(e) => {
+                          setSelectedVehicleId(e.target.value);
+                          if (e.target.value !== "legacy") {
+                            setLegacyVehicle(null);
+                          }
+                        }}
+                        className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-4 py-3 text-sm theme-text focus:ring-2 focus:ring-brand-500 transition-shadow shadow-sm"
+                      >
+                        {vehicles.map((v) => (
+                          <option key={v._id} value={v._id}>
+                            {v.brand} {v.model} ({v.licensePlate})
+                          </option>
+                        ))}
+                        {selectedVehicleId === "legacy" && legacyVehicle && (
+                          <option value="legacy">
+                            [Anterior] {legacyVehicle.brand} {legacyVehicle.model} ({legacyVehicle.licensePlate})
+                          </option>
+                        )}
+                      </select>
+                    </div>
+
+                    {/* Previsualización del auto seleccionado */}
+                    {(() => {
+                      const activeVehicle = selectedVehicleId === "legacy" 
+                        ? legacyVehicle 
+                        : vehicles.find(v => v._id === selectedVehicleId);
+                        
+                      if (!activeVehicle) return null;
+
+                      return (
+                        <div className="bg-white dark:bg-gray-900/50 border border-current/5 rounded-2xl p-4 shadow-md flex flex-col sm:flex-row gap-4 animate-in fade-in duration-300">
+                          {activeVehicle.photoDataUrl && (
+                            <div className="relative h-24 w-full sm:w-36 rounded-xl overflow-hidden bg-gray-100 shrink-0 border border-current/10">
+                              <Image 
+                                src={activeVehicle.photoDataUrl} 
+                                alt={`${activeVehicle.brand} ${activeVehicle.model}`} 
+                                fill 
+                                className="object-cover" 
+                                unoptimized
+                              />
+                            </div>
+                          )}
+                          <div className="flex-1 flex flex-col justify-between">
+                            <div>
+                              <div className="flex items-center justify-between sm:justify-start gap-3">
+                                <h4 className="font-bold theme-text text-md uppercase tracking-tight">
+                                  {activeVehicle.brand} {activeVehicle.model}
+                                </h4>
+                                <span className="bg-emerald-600/10 text-emerald-600 dark:text-emerald-400 font-bold px-2.5 py-0.5 rounded-full text-[10px] uppercase tracking-wider border border-emerald-500/10">
+                                  {activeVehicle.licensePlate}
+                                </span>
+                              </div>
+                              <p className="text-xs theme-text opacity-60 mt-1">
+                                Color {activeVehicle.color} • Año {activeVehicle.year}
+                              </p>
+                              {activeVehicle.extraNotes && (
+                                <p className="text-[10px] theme-text opacity-70 italic mt-2 line-clamp-2">
+                                  "{activeVehicle.extraNotes}"
+                                </p>
+                              )}
+                            </div>
+                            
+                            {selectedVehicleId === "legacy" && (
+                              <div className="mt-2 text-[10px] bg-amber-500/10 text-amber-700 dark:text-amber-300 px-3 py-1 rounded-lg border border-amber-500/10 font-bold flex items-center gap-1">
+                                <Info className="h-3 w-3" /> Vehículo antiguo guardado en esta publicación.
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })()}
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium theme-text mb-1">Color</label>
-                    <input
-                      type="text"
-                      required={formData.type === "offer"}
-                      value={vehicleFields.color}
-                      onChange={(e) => setVehicleFields({ ...vehicleFields, color: e.target.value })}
-                      className="w-full rounded-xl border border-gray-300 dark:border-gray-600 py-3 px-4 theme-text bg-white dark:bg-gray-900"
-                      placeholder="Ej: Rojo, Blanco..."
-                    />
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium theme-text mb-1">Patente</label>
-                  <input
-                    type="text"
-                    required={formData.type === "offer"}
-                    value={vehicleFields.licensePlate}
-                    onChange={(e) => setVehicleFields({ ...vehicleFields, licensePlate: e.target.value })}
-                    className="w-full rounded-xl border border-gray-300 dark:border-gray-600 py-3 px-4 theme-text bg-white dark:bg-gray-900"
-                    placeholder="AA 123 BB"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium theme-text mb-1">Notas del vehículo (opcional)</label>
-                  <input
-                    type="text"
-                    value={vehicleFields.extraNotes}
-                    onChange={(e) => setVehicleFields({ ...vehicleFields, extraNotes: e.target.value })}
-                    className="w-full rounded-xl border border-gray-300 dark:border-gray-600 py-3 px-4 theme-text bg-white dark:bg-gray-900"
-                    placeholder="Modelo, color, etc."
-                  />
-                </div>
+                )}
               </div>
             )}
 

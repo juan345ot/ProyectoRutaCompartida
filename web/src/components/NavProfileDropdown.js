@@ -1,6 +1,6 @@
 "use client";
 import Link from 'next/link';
-import { Settings, List, Map, Star, LogOut, MessageSquare } from 'lucide-react';
+import { Settings, List, Map, Star, LogOut, MessageSquare, Car } from 'lucide-react';
 
 export default function NavProfileDropdown({ user, logout, isOpen }) {
   if (!isOpen) return null;
@@ -17,6 +17,9 @@ export default function NavProfileDropdown({ user, logout, isOpen }) {
         </Link>
         <Link href="/my-posts" className="flex items-center gap-3 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-brand-600 rounded-xl transition-colors">
           <List className="h-4 w-4" /> Mis Publicaciones
+        </Link>
+        <Link href="/my-vehicles" className="flex items-center gap-3 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-brand-600 rounded-xl transition-colors">
+          <Car className="h-4 w-4" /> Mis Vehículos
         </Link>
         <Link href="/my-bookings" className="flex items-center gap-3 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-brand-600 rounded-xl transition-colors">
           <MessageSquare className="h-4 w-4" /> Mis Solicitudes

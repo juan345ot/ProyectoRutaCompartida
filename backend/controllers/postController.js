@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const Post = require('../models/Post');
 const User = require('../models/User');
 
@@ -46,6 +47,25 @@ function publicListAuthor(author) {
   return stripAuthorContact(author);
 }
 
+async function populateVehicleForPost(postDoc) {
+  if (!postDoc) return null;
+  const post = typeof postDoc.toObject === 'function' ? postDoc.toObject({ virtuals: true }) : { ...postDoc };
+  
+  if (post.vehicle) {
+    const isId = (typeof post.vehicle === 'string' && post.vehicle.length === 24) || mongoose.isValidObjectId(post.vehicle);
+    if (isId) {
+      const Vehicle = require('../models/Vehicle');
+      const found = await Vehicle.findById(post.vehicle);
+      post.vehicle = found ? found.toObject() : null;
+    }
+  }
+  return post;
+}
+
+async function populateVehicleForPosts(posts) {
+  return Promise.all(posts.map(post => populateVehicleForPost(post)));
+}
+
 // @desc    Get all posts
 // @route   GET /api/posts
 // @access  Public (sin teléfono ni email del autor en listado)
@@ -83,7 +103,8 @@ const getPosts = async (req, res) => {
       return o;
     });
 
-    res.status(200).json(safe);
+    const populated = await populateVehicleForPosts(safe);
+    res.status(200).json(populated);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -104,8 +125,9 @@ const getPost = async (req, res) => {
 
     const viewer = req.user || null;
     const payload = sanitizePostForViewer(post, viewer);
-    payload._canViewContact = isApprovedParticipant(post, viewerIdString(viewer));
-    res.status(200).json(payload);
+    const populatedPayload = await populateVehicleForPost(payload);
+    populatedPayload._canViewContact = isApprovedParticipant(post, viewerIdString(viewer));
+    res.status(200).json(populatedPayload);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -169,14 +191,33 @@ const createPost = async (req, res) => {
             'Para ofrecer un viaje necesitás subir una foto de perfil real en Mis Datos. Podés publicar búsquedas sin foto.',
         });
       }
-      if (!vehicle?.photoDataUrl || String(vehicle.photoDataUrl).length < 50) {
-        return res.status(400).json({ message: 'Para ofrecer lugar es obligatoria una foto del vehículo.' });
+      if (!vehicle) {
+        return res.status(400).json({ message: 'Para ofrecer lugar es obligatorio seleccionar o registrar un vehículo.' });
       }
-      if (String(vehicle.photoDataUrl).length > 900000) {
-        return res.status(400).json({ message: 'La imagen del vehículo es demasiado grande.' });
-      }
-      if (!vehicle.licensePlate || !String(vehicle.licensePlate).trim()) {
-        return res.status(400).json({ message: 'Indicá la patente del vehículo.' });
+
+      const isId = (typeof vehicle === 'string' && vehicle.length === 24) || mongoose.isValidObjectId(vehicle);
+      if (isId) {
+        const Vehicle = require('../models/Vehicle');
+        const foundVehicle = await Vehicle.findOne({ _id: vehicle, owner: req.user.id });
+        if (!foundVehicle) {
+          return res.status(404).json({ message: 'El vehículo seleccionado no existe o no pertenece a tu cuenta.' });
+        }
+        if (!foundVehicle.photoDataUrl || String(foundVehicle.photoDataUrl).length < 50) {
+          return res.status(400).json({ message: 'El vehículo seleccionado no cuenta con una foto válida.' });
+        }
+        if (!foundVehicle.licensePlate || !String(foundVehicle.licensePlate).trim()) {
+          return res.status(400).json({ message: 'El vehículo seleccionado no cuenta con una patente válida.' });
+        }
+      } else {
+        if (!vehicle.photoDataUrl || String(vehicle.photoDataUrl).length < 50) {
+          return res.status(400).json({ message: 'Para ofrecer lugar es obligatoria una foto del vehículo.' });
+        }
+        if (String(vehicle.photoDataUrl).length > 900000) {
+          return res.status(400).json({ message: 'La imagen del vehículo es demasiado grande.' });
+        }
+        if (!vehicle.licensePlate || !String(vehicle.licensePlate).trim()) {
+          return res.status(400).json({ message: 'Indicá la patente del vehículo.' });
+        }
       }
     }
 
@@ -196,20 +237,27 @@ const createPost = async (req, res) => {
     };
 
     if (type === 'offer' && vehicle) {
-      postData.vehicle = {
-        brand: vehicle.brand ? String(vehicle.brand).trim() : undefined,
-        model: vehicle.model ? String(vehicle.model).trim() : undefined,
-        color: vehicle.color ? String(vehicle.color).trim() : undefined,
-        photoDataUrl: vehicle.photoDataUrl,
-        licensePlate: String(vehicle.licensePlate).trim(),
-        extraNotes: vehicle.extraNotes ? String(vehicle.extraNotes).slice(0, 300) : undefined,
-      };
+      const isId = (typeof vehicle === 'string' && vehicle.length === 24) || mongoose.isValidObjectId(vehicle);
+      if (isId) {
+        postData.vehicle = vehicle;
+      } else {
+        postData.vehicle = {
+          brand: vehicle.brand ? String(vehicle.brand).trim() : undefined,
+          model: vehicle.model ? String(vehicle.model).trim() : undefined,
+          color: vehicle.color ? String(vehicle.color).trim() : undefined,
+          photoDataUrl: vehicle.photoDataUrl,
+          licensePlate: String(vehicle.licensePlate).trim(),
+          extraNotes: vehicle.extraNotes ? String(vehicle.extraNotes).slice(0, 300) : undefined,
+        };
+      }
     }
 
     const createdPost = await Post.create(postData);
     const populated = await Post.findById(createdPost._id).populate('author', 'name profileImage phone email');
+    const sanitized = sanitizePostForViewer(populated, req.user);
+    const populatedPayload = await populateVehicleForPost(sanitized);
 
-    res.status(201).json(sanitizePostForViewer(populated, req.user));
+    res.status(201).json(populatedPayload);
   } catch (error) {
     console.error("Error creating post:", error);
     res.status(400).json({ message: error.message });
@@ -378,19 +426,33 @@ const updatePost = async (req, res) => {
 
     // Vehículo (solo si es oferta)
     if (post.type === 'offer' && vehicle) {
-      post.vehicle = {
-        ...post.vehicle,
-        photoDataUrl: vehicle.photoDataUrl || post.vehicle?.photoDataUrl,
-        licensePlate: (vehicle.licensePlate || post.vehicle?.licensePlate || '').trim(),
-        vtvExpiry: vehicle.vtvExpiry ? new Date(vehicle.vtvExpiry) : post.vehicle?.vtvExpiry,
-        insuranceVerified: vehicle.insuranceVerified !== undefined ? !!vehicle.insuranceVerified : !!post.vehicle?.insuranceVerified,
-        extraNotes: vehicle.extraNotes !== undefined ? String(vehicle.extraNotes).slice(0, 300) : post.vehicle?.extraNotes,
-      };
+      const isId = (typeof vehicle === 'string' && vehicle.length === 24) || mongoose.isValidObjectId(vehicle);
+      if (isId) {
+        const Vehicle = require('../models/Vehicle');
+        const foundVehicle = await Vehicle.findOne({ _id: vehicle, owner: req.user.id });
+        if (!foundVehicle) {
+          return res.status(404).json({ message: 'El vehículo seleccionado no existe o no pertenece a tu cuenta.' });
+        }
+        post.vehicle = vehicle;
+      } else {
+        const oldVehicle = typeof post.vehicle === 'object' ? post.vehicle : {};
+        post.vehicle = {
+          ...oldVehicle,
+          brand: vehicle.brand !== undefined ? String(vehicle.brand).trim() : oldVehicle.brand,
+          model: vehicle.model !== undefined ? String(vehicle.model).trim() : oldVehicle.model,
+          color: vehicle.color !== undefined ? String(vehicle.color).trim() : oldVehicle.color,
+          photoDataUrl: vehicle.photoDataUrl || oldVehicle.photoDataUrl,
+          licensePlate: (vehicle.licensePlate || oldVehicle.licensePlate || '').trim(),
+          extraNotes: vehicle.extraNotes !== undefined ? String(vehicle.extraNotes).slice(0, 300) : oldVehicle.extraNotes,
+        };
+      }
     }
 
     await post.save();
     const updated = await Post.findById(post._id).populate('author', 'name profileImage phone email');
-    res.status(200).json(sanitizePostForViewer(updated, req.user));
+    const sanitized = sanitizePostForViewer(updated, req.user);
+    const populatedPayload = await populateVehicleForPost(sanitized);
+    res.status(200).json(populatedPayload);
   } catch (error) {
     res.status(400).json({ message: error.message });
   }
