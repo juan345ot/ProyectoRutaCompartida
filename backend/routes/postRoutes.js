@@ -21,7 +21,7 @@ const validatePost = [
   check('origin', 'El origen es requerido').not().isEmpty().trim(),
   check('destination', 'El destino es requerido').not().isEmpty().trim(),
   check('departureDate', 'Fecha de salida inválida').isISO8601(),
-  check('capacity', 'Indicá capacidad (texto o número)').not().isEmpty().trim().isLength({ max: 80 }),
+  check('capacity', 'Indicá capacidad (texto o número)').optional({ checkFalsy: true }).trim().isLength({ max: 80 }),
   (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {

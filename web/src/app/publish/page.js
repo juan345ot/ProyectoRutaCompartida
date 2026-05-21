@@ -186,6 +186,7 @@ function PublishContent() {
         departureDate,
         arrivalApprox: formData.arrivalApprox || undefined,
         description: formData.description,
+        capacity: formData.category === "passenger" ? `${formData.seats} lugares` : `${formData.weight} kg`,
       };
 
       if (formData.category === "passenger") {
