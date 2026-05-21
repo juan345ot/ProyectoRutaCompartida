@@ -115,24 +115,57 @@ function PublishContent() {
   };
 
   useEffect(() => {
-    if (typeof window !== "undefined" && window.google && originRef.current && destinationRef.current) {
-      const options = { componentRestrictions: { country: "ar" }, fields: ["formatted_address", "name"] };
-      const autocompleteOrigin = new window.google.maps.places.Autocomplete(originRef.current, options);
-      const autocompleteDest = new window.google.maps.places.Autocomplete(destinationRef.current, options);
+    let intervalId = null;
+    
+    const initAutocomplete = () => {
+      if (
+        typeof window !== "undefined" &&
+        window.google &&
+        window.google.maps &&
+        window.google.maps.places &&
+        originRef.current &&
+        destinationRef.current
+      ) {
+        const options = { componentRestrictions: { country: "ar" }, fields: ["formatted_address", "name"] };
+        const autocompleteOrigin = new window.google.maps.places.Autocomplete(originRef.current, options);
+        const autocompleteDest = new window.google.maps.places.Autocomplete(destinationRef.current, options);
 
-      autocompleteOrigin.addListener("place_changed", () => {
-        const place = autocompleteOrigin.getPlace();
-        if (place.formatted_address || place.name) {
-          setFormData(prev => ({ ...prev, origin: place.formatted_address || place.name }));
+        autocompleteOrigin.addListener("place_changed", () => {
+          const place = autocompleteOrigin.getPlace();
+          if (place.formatted_address || place.name) {
+            setFormData(prev => ({ ...prev, origin: place.formatted_address || place.name }));
+          }
+        });
+        autocompleteDest.addListener("place_changed", () => {
+          const place = autocompleteDest.getPlace();
+          if (place.formatted_address || place.name) {
+            setFormData(prev => ({ ...prev, destination: place.formatted_address || place.name }));
+          }
+        });
+
+        if (intervalId) {
+          clearInterval(intervalId);
         }
-      });
-      autocompleteDest.addListener("place_changed", () => {
-        const place = autocompleteDest.getPlace();
-        if (place.formatted_address || place.name) {
-          setFormData(prev => ({ ...prev, destination: place.formatted_address || place.name }));
+        return true;
+      }
+      return false;
+    };
+
+    const success = initAutocomplete();
+    if (!success) {
+      intervalId = setInterval(() => {
+        const initialized = initAutocomplete();
+        if (initialized && intervalId) {
+          clearInterval(intervalId);
         }
-      });
+      }, 300);
     }
+
+    return () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+    };
   }, []);
 
   const handleVehiclePhoto = (e) => {
